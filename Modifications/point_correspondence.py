@@ -1,7 +1,15 @@
 import math
+from time import sleep
 
 import cv2
 import numpy as np
+
+def display(img):
+    cv2.imshow('Output', img)
+    if cv2.waitKey(0) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+    sleep(1)
 
 def import_image(filename):
     return cv2.imread(filename)
@@ -22,6 +30,18 @@ def binarize(img):
 def find_contours(img):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
+
+def draw_contours(img, contours, min_size=0):
+    contours_drawn = img.copy()
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area < min_size:
+            continue
+        contours_drawn = cv2.drawContours(contours_drawn, [contour], -1, (0,0,255), 2)
+    return contours_drawn
+
+def draw_line(img, start, finish, color=(0, 255, 0), thickness=1):
+    return cv2.line(img, start, finish, color, thickness)
 
 def opencv_contour_to_list(c1, z=0):
     result = []
@@ -144,7 +164,7 @@ def correspond(ctr1, ctr2):
     c2para = [x / len(c2angs) for x in range(len(c2angs))]
 
     # weighted sum of angles and parameterisation
-    ANG_WEIGHT = 0.5
+    ANG_WEIGHT = 0.7
     c1metrics = [ANG_WEIGHT * c1angs[i] + (1 - ANG_WEIGHT) * c1para[i] for i in range(len(c1angs))]
     c2metrics = [ANG_WEIGHT * c2angs[i] + (1 - ANG_WEIGHT) * c2para[i] for i in range(len(c2angs))]
 
@@ -191,8 +211,17 @@ def main():
     ''' tests '''
     contour1 = get_contour_from_image("Modifications/data/contour_single.png")
     contour2 = get_contour_from_image("Modifications/data/contour_double.png")
-    correspond(contour1, contour2)
-    print()
+    matches = correspond(contour1, contour2)
+
+    black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
+    black = draw_contours(black, [contour1, contour2])
+    STEP = 4
+    for m in range(0, len(matches), STEP):
+        match = matches[m]
+        start = tuple(contour1[match[0]][0])
+        end = tuple(contour2[match[1]][0])
+        black = draw_line(black, start, end)
+    display(black)
 
 if __name__ == "__main__":
     main()
