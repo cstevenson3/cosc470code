@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import numpy as np
 
@@ -26,6 +28,7 @@ def opencv_contour_to_list(c1, z=0):
     for point in c1:
         fullpoint = [point[0][0], point[0][1], z]
         result.append(fullpoint)
+    result.reverse()
     return result
 
 def get_contour_from_image(filename):
@@ -53,14 +56,17 @@ def starting_point(ctr):
 
     # find starting candidates 
     candidates = []  # indices
-    tolerance = 1.0  # in pixels
-    while len(candidates) == 0:
-        # try with current tolerance
-        for i in range(len(ctr)):
-            p = ctr[i]
-            if abs(p[1]) < tolerance:
-                candidates.append(i)
-        tolerance += 1.0 # if nothing found increase tolerance
+    for i in range(len(ctr)):
+        i1 = i
+        i2 = (i + 1) % len(ctr)
+        p1 = ctr[i1]
+        p2 = ctr[i2]
+        if p1[1] * p2[1] < 0:  # signs have swapped, so has crossed x-axis
+            # append point above x-axis
+            if p1[1] > 0:
+                candidates.append(i1)
+            else:
+                candidates.append(i2)
 
     # find rightmost out of these
     rightmost = candidates[0]
@@ -71,6 +77,41 @@ def starting_point(ctr):
             rightmost = index
             rightmost_point = p
     return rightmost
+
+def angle_of_point(point):
+    ''' find angle between 0 and 1 where 0 is x-axis and 1 is full revolution '''
+    if point[0] == 0:
+        if point[1] >= 0:
+            return 0.25
+        else:
+            return 0.75
+    ang = math.atan(point[1] / point[0])
+    if point[0] < 0:
+        # left half
+        ang += math.pi
+    if point[0] >= 0 and point[1] < 0:
+        # bottom right quadrant
+        ang += 2 * math.pi
+    return ang / (2 * math.pi)
+
+def reorder_from_index(lis, start):
+    result = []
+    for i in range(len(lis)):
+        index = (start + i) % len(lis)
+        result.append(lis[index])
+    return result
+
+def angle_monoticity(angs):
+    ''' ensure angle is always increasing '''
+    result = angs[:]
+    for i in range(len(result)):
+        if i == 0:
+            continue
+        ang_current = result[i]
+        ang_previous = result[i - 1]
+        if ang_current < ang_previous:
+            result[i] = ang_previous
+    return result
 
 def correspond(ctr1, ctr2):
     ''' c1 and c2 are contours as lists of size-3 lists '''
@@ -88,7 +129,63 @@ def correspond(ctr1, ctr2):
 
     c1start = starting_point(c1)
     c2start = starting_point(c2)
-    print()
+
+    c1reordered = reorder_from_index(c1, c1start)
+    c2reordered = reorder_from_index(c2, c2start)
+    
+    c1angs = [angle_of_point(p) for p in c1reordered]
+    c2angs = [angle_of_point(p) for p in c2reordered]
+
+    c1angs = angle_monoticity(c1angs)
+    c2angs = angle_monoticity(c2angs)
+
+    # distance around contour by point count
+    c1para = [x / len(c1angs) for x in range(len(c1angs))]
+    c2para = [x / len(c2angs) for x in range(len(c2angs))]
+
+    # weighted sum of angles and parameterisation
+    ANG_WEIGHT = 0.5
+    c1metrics = [ANG_WEIGHT * c1angs[i] + (1 - ANG_WEIGHT) * c1para[i] for i in range(len(c1angs))]
+    c2metrics = [ANG_WEIGHT * c2angs[i] + (1 - ANG_WEIGHT) * c2para[i] for i in range(len(c2angs))]
+
+    # path finding
+    i = 0
+    j = 0
+    matches = [(0, 0)]
+    while i < len(c1metrics) and j < len(c2metrics):
+        # advance i and j so the metrics leapfrog
+        if c1metrics[i] < c2metrics[j]:
+            i += 1
+        else:
+            j +=1
+        matches.append((i, j))
+    
+    # triangle fan match remaining points
+    # note i == len(c1metrics) when starting point has been cycled to
+    while i < len(c1metrics): 
+        i += 1
+        matches.append((i, j))
+
+    # and respectively for j
+    while j < len(c2metrics):
+        j += 1
+        matches.append((i, j))
+    
+    matches_fixed_order = []
+    for match in matches:
+        i = (match[0] + c1start) % len(c1metrics)
+        j = (match[1] + c2start) % len(c2metrics)
+        matches_fixed_order.append((i, j))
+    
+    #find (0, 0) in new list
+    actual_start = None
+    for m in range(len(matches_fixed_order)):
+        match = matches_fixed_order[m]
+        if match == (0, 0):
+            actual_start = m
+    original_matches = reorder_from_index(matches_fixed_order, actual_start)
+    # TODO may have to change 0 indices at end of original_matches
+    return original_matches
 
 def main():
     ''' tests '''
