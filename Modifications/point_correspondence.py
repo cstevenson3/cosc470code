@@ -164,7 +164,7 @@ def correspond(ctr1, ctr2):
     c2para = [x / len(c2angs) for x in range(len(c2angs))]
 
     # weighted sum of angles and parameterisation
-    ANG_WEIGHT = 0.7
+    ANG_WEIGHT = 0.3
     c1metrics = [ANG_WEIGHT * c1angs[i] + (1 - ANG_WEIGHT) * c1para[i] for i in range(len(c1angs))]
     c2metrics = [ANG_WEIGHT * c2angs[i] + (1 - ANG_WEIGHT) * c2para[i] for i in range(len(c2angs))]
 
@@ -172,7 +172,7 @@ def correspond(ctr1, ctr2):
     i = 0
     j = 0
     matches = [(0, 0)]
-    while i < len(c1metrics) and j < len(c2metrics):
+    while i < len(c1metrics) - 1 and j < len(c2metrics) - 1:
         # advance i and j so the metrics leapfrog
         if c1metrics[i] < c2metrics[j]:
             i += 1
@@ -197,15 +197,7 @@ def correspond(ctr1, ctr2):
         j = (match[1] + c2start) % len(c2metrics)
         matches_fixed_order.append((i, j))
     
-    #find (0, 0) in new list
-    actual_start = None
-    for m in range(len(matches_fixed_order)):
-        match = matches_fixed_order[m]
-        if match == (0, 0):
-            actual_start = m
-    original_matches = reorder_from_index(matches_fixed_order, actual_start)
-    # TODO may have to change 0 indices at end of original_matches
-    return original_matches
+    return matches_fixed_order
 
 def main():
     ''' tests '''
