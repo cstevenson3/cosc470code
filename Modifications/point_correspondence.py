@@ -43,6 +43,9 @@ def draw_contours(img, contours, min_size=0):
 def draw_line(img, start, finish, color=(0, 255, 0), thickness=1):
     return cv2.line(img, start, finish, color, thickness)
 
+def draw_dot(img, centre, size=2, color=(0, 255, 0), thickness=-1):
+    return cv2.circle(img, centre, size, color, thickness)
+
 def opencv_contour_to_list(c1, z=0):
     result = []
     for point in c1:
@@ -58,7 +61,40 @@ def get_contour_from_image(filename):
 
     return c
 
+def multiply(scale, vec):
+    return [scale * vec[i] for i in range(len(vec))]
+
+def add(left, right):
+    return [left[i] + right[i] for i in range(len(left))]
+
+def subtract(left, right):
+    return [left[i] - right[i] for i in range(len(left))]
+
+def cross(p0, p1):
+    return p0[0] * p1[1] - p0[1] * p1[0]
+
 def centroid(ctr):
+    ''' centroid of list of points defining counter-clockwise closed curve ''' 
+    triangles = []
+    for i in range(0, len(ctr) - 2):
+        p0 = ctr[0]
+        p1 = ctr[i + 1]
+        p2 = ctr[i + 2]
+
+        triangle_centroid = multiply(1.0 / 3.0, [sum(x) for x in zip(p0, p1, p2)])
+        triangle_area = cross(subtract(p1, p0), subtract(p2, p0)) / 2.0
+        triangles.append((triangle_centroid, triangle_area))
+
+    total_area = 0
+    centroid = [0, 0]
+    for tri in triangles:
+        part = multiply(tri[1], tri[0])
+        centroid = add(centroid, part)
+        total_area += tri[1]
+    centroid = multiply(1.0 / total_area, centroid)
+    return centroid
+
+def centroid_opencv(ctr):
     M = cv2.moments(ctr)
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
@@ -135,13 +171,15 @@ def angle_monoticity(angs):
 
 def correspond(ctr1, ctr2):
     ''' c1 and c2 are contours as lists of size-3 lists '''
-    # find centroids
-    c1x, c1y = centroid(ctr1)
-    c2x, c2y = centroid(ctr2)
-
     # add in z
     oc1 = opencv_contour_to_list(ctr1, z=0)
     oc2 = opencv_contour_to_list(ctr2, z=128)
+
+    # find centroids
+    c1x, c1y = centroid_opencv(ctr1)
+    c2x, c2y = centroid_opencv(ctr2)
+    c1x, c1y = centroid(oc1)
+    c2x, c2y = centroid(oc2)
 
     # make it so each contour's centroid is at 0, 0
     c1 = translate(oc1, x=-c1x, y=-c1y)
@@ -197,13 +235,13 @@ def correspond(ctr1, ctr2):
         j = (match[1] + c2start) % len(c2metrics)
         matches_fixed_order.append((i, j))
     
-    return matches_fixed_order
+    return matches_fixed_order, [(c1x, c1y), (c2x, c2y)]
 
 def main():
     ''' tests '''
     contour1 = get_contour_from_image("Modifications/data/contour_single.png")
     contour2 = get_contour_from_image("Modifications/data/contour_double.png")
-    matches = correspond(contour1, contour2)
+    matches, centroids = correspond(contour1, contour2)
 
     black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
     black = draw_contours(black, [contour1, contour2])
@@ -213,6 +251,10 @@ def main():
         start = tuple(contour1[match[0]][0])
         end = tuple(contour2[match[1]][0])
         black = draw_line(black, start, end)
+    centroids = [(int(c[0]), int(c[1])) for c in centroids]
+    # for centroid in centroids:
+    #     draw_dot(black, centroid, color=(255, 255, 255))
+    draw_dot(black, centroids[0], color=(255, 255, 255))
     display(black)
 
 if __name__ == "__main__":
