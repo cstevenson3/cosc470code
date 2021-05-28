@@ -1,6 +1,8 @@
 #ifndef SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP
 #define SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP
 
+#include <glm/geometric.hpp>
+
 #include "Contours.hpp"
 #include "MeshUtil.hpp"
 

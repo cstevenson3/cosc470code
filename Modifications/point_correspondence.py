@@ -176,8 +176,8 @@ def correspond(ctr1, ctr2):
     oc2 = opencv_contour_to_list(ctr2, z=128)
 
     # find centroids
-    c1x, c1y = centroid_opencv(ctr1)
-    c2x, c2y = centroid_opencv(ctr2)
+    # c1x, c1y = centroid_opencv(ctr1)
+    # c2x, c2y = centroid_opencv(ctr2)
     c1x, c1y = centroid(oc1)
     c2x, c2y = centroid(oc2)
 
