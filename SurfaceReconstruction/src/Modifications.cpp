@@ -1,8 +1,23 @@
 #include "Modifications.hpp"
 
+#include <iostream>
+#include <string>
+
 #define PI 3.14159265f
 
 namespace Modifications {
+    void printVec(const glm::vec3& vec) {
+        std::cout << "(" + std::to_string(vec[0]) + ", " + std::to_string(vec[1]) + ", " + std::to_string(vec[2]) + ")" << std::endl;
+    }
+
+    void printContour(const std::vector<glm::vec3>& contour)
+    {
+        for(auto vec : contour) {
+            printVec(vec);
+            std::cout << std::endl;
+        }
+    }
+
     // find angle between 0 and 1 where 0 is x-axis and 1 is full revolution
     float angleOfPoint(glm::vec3 point) 
     {
@@ -44,7 +59,14 @@ namespace Modifications {
     {
         std::vector<glm::vec3> result = std::vector<glm::vec3>();
         for(auto index : contour) {
-            result.push_back(points[index]);
+            // these modifications assume x and y are the contour planes, z is "up"
+            // so we need to change coordinates
+            glm::vec3 point = points[index];
+            glm::vec3 shuffled = glm::vec3(0.0f, 0.0f, 0.0f);
+            shuffled[0] = point[0];
+            shuffled[1] = point[2];
+            shuffled[2] = point[1];
+            result.push_back(shuffled);
         }
         return result;
     }
@@ -79,6 +101,11 @@ namespace Modifications {
             }
         }
 
+        if(candidates.size() == 0) {
+            std::cout << "No candidates" << std::endl;
+            // printContour(contour);
+        }
+
         // there should be at least one candidate if the centroid is correct and contour is continuous
         // find rightmost candidate
         int rightmost = candidates[0];
@@ -104,7 +131,9 @@ namespace Modifications {
             glm::vec3 p2 = contour[i + 2];
 
             glm::vec3 triangleCentroid = (p0 + p1 + p2) * (float)(1.0 / 3.0);
+            printVec(glm::cross(p1 - p0, p2 - p0));
             float triangleArea = glm::cross(p1 - p0, p2 - p0)[2] * (float)(1.0 / 2.0);
+            // std::cout << triangleArea << std::endl;
             triangleCentroids.push_back(triangleCentroid);
             triangleAreas.push_back(triangleArea);
         }
