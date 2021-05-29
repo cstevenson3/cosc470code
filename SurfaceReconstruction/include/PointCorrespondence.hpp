@@ -19,7 +19,8 @@ namespace PointCorrespondence {
         shortestpath,
         dynamictimewarping,
         dynamictimewarpingwindow,
-        shortestangle
+        shortestangle,
+        pointangle
     };
 
 
