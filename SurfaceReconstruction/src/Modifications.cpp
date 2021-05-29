@@ -82,12 +82,12 @@ namespace Modifications {
         // there should be at least one candidate if the centroid is correct and contour is continuous
         // find rightmost candidate
         int rightmost = candidates[0];
-        glm::vec3 rightmost_point = contour[rightmost];
+        glm::vec3 rightmostPoint = contour[rightmost];
         for(auto index : candidates) {
             glm::vec3 p = contour[index];
-            if(p[0] > rightmost_point[0]) {
+            if(p[0] > rightmostPoint[0]) {
                 rightmost = index;
-                rightmost_point = p;
+                rightmostPoint = p;
             }
         }
         return rightmost;
@@ -96,30 +96,30 @@ namespace Modifications {
 
     glm::vec3 contourCentroid(const std::vector<glm::vec3>& contour) 
     {
-        std::vector<glm::vec3> triangle_centroids = std::vector<glm::vec3>();
-        std::vector<float> triangle_areas = std::vector<float>();
+        std::vector<glm::vec3> triangleCentroids = std::vector<glm::vec3>();
+        std::vector<float> triangleAreas = std::vector<float>();
         for(int i = 0; i < contour.size() - 2; i++) {
             glm::vec3 p0 = contour[0];
             glm::vec3 p1 = contour[i + 1];
             glm::vec3 p2 = contour[i + 2];
 
-            glm::vec3 triangle_centroid = (p0 + p1 + p2) * (float)(1.0 / 3.0);
-            float triangle_area = glm::cross(p1 - p0, p2 - p0)[2] * (float)(1.0 / 2.0);
-            triangle_centroids.push_back(triangle_centroid);
-            triangle_areas.push_back(triangle_area);
+            glm::vec3 triangleCentroid = (p0 + p1 + p2) * (float)(1.0 / 3.0);
+            float triangleArea = glm::cross(p1 - p0, p2 - p0)[2] * (float)(1.0 / 2.0);
+            triangleCentroids.push_back(triangleCentroid);
+            triangleAreas.push_back(triangleArea);
         }
         
-        float total_area = 0;
+        float totalArea = 0;
         glm::vec3 centroid = glm::vec3(0.0, 0.0, 0.0);
-        for(int j = 0; j < triangle_centroids.size(); j++) {
-            glm::vec3 triangle_centroid = triangle_centroids[j];
-            float triangle_area = triangle_areas[j];
+        for(int j = 0; j < triangleCentroids.size(); j++) {
+            glm::vec3 triangleCentroid = triangleCentroids[j];
+            float triangleArea = triangleAreas[j];
 
-            glm::vec3 weighted_centroid = triangle_centroid * triangle_area;
-            centroid = centroid + weighted_centroid;
-            total_area += triangle_area;
+            glm::vec3 weightedCentroid = triangleCentroid * triangleArea;
+            centroid = centroid + weightedCentroid;
+            totalArea += triangleArea;
         }
-        centroid = centroid * (float)(1.0 / total_area);
+        centroid = centroid * (float)(1.0 / totalArea);
         return centroid;
     } 
 
@@ -138,10 +138,10 @@ namespace Modifications {
             if(i == 0) {
                 continue;
             }
-            float ang_current = result[i];
-            float ang_previous = result[i - 1];
-            if(ang_current < ang_previous) {
-                result[i] = ang_previous;
+            float angCurrent = result[i];
+            float angPrevious = result[i - 1];
+            if(angCurrent < angPrevious) {
+                result[i] = angPrevious;
             }
         }
         return result;
@@ -241,7 +241,7 @@ namespace Modifications {
         }
 
         // undo reordering of contours
-        std::vector<std::pair<int, int> > matchesFixedOrder = std::vector<std::pair<int, int> >();
+        MeshUtil::Correspondence matchesFixedOrder = MeshUtil::Correspondence();
         for(auto match : matches) {
             int i = (match[0] + c1start) % c1metrics.size();
             int j = (match[1] + c2start) % c2metrics.size();
@@ -259,11 +259,11 @@ namespace Modifications {
         std::vector<glm::vec3> contour1 = getPointsFromContour(points, source);
         std::vector<glm::vec3> contour2 = getPointsFromContour(points, neighbour);
 
-        MeshUtil::Correspondence correspondence_indices = pointCorrespondencePointAngle(contour1, contour2);
+        MeshUtil::Correspondence correspondenceIndices = pointCorrespondencePointAngle(contour1, contour2);
 
         // convert back to original indices
         MeshUtil::Correspondence output = MeshUtil::Correspondence();
-        for(auto pair : correspondence_indices) {
+        for(auto pair : correspondenceIndices) {
             output.push_back(std::make_pair(source[pair[0]], neighbour[pair[1]]));
         }
 
