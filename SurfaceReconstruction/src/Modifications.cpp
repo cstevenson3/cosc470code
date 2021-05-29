@@ -213,6 +213,42 @@ namespace Modifications {
 
         std::vector<float> c1metrics = weightedMetrics(metricWeights, c1metricInputs);
         std::vector<float> c2metrics = weightedMetrics(metricWeights, c2metricInputs);
+
+
+        // path finding
+        int i = 0;
+        int j = 0;
+        std::vector<std::pair<int, int> > matches = std::vector<std::pair<int, int> >();
+        matches.push_back(std::make_pair(0, 0));
+        while(i < c1metrics.size() - 1 && j < c2metrics.size() - 1) {
+            // advance i and j so the metrics leapfrog
+            if(c1metrics[i] < c2metrics[j]) {
+                i += 1;
+            } else {
+                j += 1;
+            }
+            matches.push_back(std::make_pair(i, j));
+        }
+
+        // triangle fan remaining points
+        while(i < c1metrics.size()) {
+            i += 1;
+            matches.push_back(std::make_pair(i, j));
+        }
+        while(j < c2metrics.size()) {
+            j += 1;
+            matches.push_back(std::make_pair(i, j));
+        }
+
+        // undo reordering of contours
+        std::vector<std::pair<int, int> > matchesFixedOrder = std::vector<std::pair<int, int> >();
+        for(auto match : matches) {
+            int i = (match[0] + c1start) % c1metrics.size();
+            int j = (match[1] + c2start) % c2metrics.size();
+            matchesFixedOrder.push_back(std::make_pair(i, j));
+        }
+
+        return matchesFixedOrder;
     }
 
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& points,
