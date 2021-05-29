@@ -1,9 +1,0 @@
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/CMakeFiles/rebuild_cache.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/CMakeFiles/edit_cache.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/src/CMakeFiles/rebuild_cache.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/src/CMakeFiles/edit_cache.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/src/CMakeFiles/lib_surface_reconstruction.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/src/CMakeFiles/surface_reconstruction.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/test/CMakeFiles/tests.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/test/CMakeFiles/rebuild_cache.dir
-/Users/cameron/Desktop/Development/cosc470code/SurfaceReconstruction/build/test/CMakeFiles/edit_cache.dir
