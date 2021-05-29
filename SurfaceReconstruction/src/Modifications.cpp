@@ -1,6 +1,18 @@
 #include "Modifications.hpp"
 
 namespace Modifications {
+    std::vector<glm::vec3> translate_contour(const std::vector<glm::vec3>& contour, float x, float y, float z) {
+        std::vector<glm::vec3> result = std::vector<glm::vec3>();
+        for(int i = 0; i < contour.size(); i++) {
+            glm::vec3 point = contour[i];
+            point[0] += x;
+            point[1] += y;
+            point[2] += z;
+            result.push_back(point);
+        }
+        return result;
+    }
+
     std::vector<glm::vec3> getPointsFromContour(const std::vector<glm::vec3>& points,
                                                 const Contours::Contour& contour) 
     {
@@ -10,6 +22,50 @@ namespace Modifications {
         }
         return result;
     }
+
+    std::vector<glm::vec3> reorder_from_index(const std::vector<glm::vec3>& contour, int start)
+    {
+        std::vector<glm::vec3> result = std::vector<glm::vec3>();
+        for(int i = 0; i < contour.size(); i++) {
+            int index = (start + i) % contour.size();
+            result.push_back(contour[index]);
+        }
+        return result;
+    }
+
+    int starting_point(const std::vector<glm::vec3>& contour) 
+    {
+        // find starting candidates
+        std::vector<int> candidates;
+        for(int i = 0; i < contour.size(); i++) {
+            int i1 = i;
+            int i2 = (i + 1) % contour.size();
+            glm::vec3 p1 = contour[i1];
+            glm::vec3 p2 = contour[i2];
+            if(p1[1] * p2[1] < 0) {  // signs have swapped, so has crossed x-axis
+                // point above x-axis is candidate
+                if(p1[1] > 0) {
+                    candidates.push_back(i1);
+                } else {
+                    candidates.push_back(i2);
+                }
+            }
+        }
+
+        // there should be at least one candidate if the centroid is correct and contour is continuous
+        // find rightmost candidate
+        int rightmost = candidates[0];
+        glm::vec3 rightmost_point = contour[rightmost];
+        for(auto index : candidates) {
+            glm::vec3 p = contour[index];
+            if(p[0] > rightmost_point[0]) {
+                rightmost = index;
+                rightmost_point = p;
+            }
+        }
+        return rightmost;
+    }
+
 
     glm::vec3 contour_centroid(const std::vector<glm::vec3>& contour) 
     {
@@ -43,7 +99,11 @@ namespace Modifications {
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& contour1, 
                                                             const std::vector<glm::vec3>& contour2)
     {
-        
+        glm::vec3 centroid1 = contour_centroid(contour1);
+        glm::vec3 centroid2 = contour_centroid(contour2);
+
+        std::vector<glm::vec3> c1 = translate_contour(contour1, -centroid1[0], -centroid1[1], 0);
+        std::vector<glm::vec3> c2 = translate_contour(contour2, -centroid2[0], -centroid2[1], 0);
     }
 
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& points,
@@ -54,6 +114,14 @@ namespace Modifications {
         std::vector<glm::vec3> contour1 = getPointsFromContour(points, source);
         std::vector<glm::vec3> contour2 = getPointsFromContour(points, neighbour);
 
+        MeshUtil::Correspondence correspondence_indices = pointCorrespondencePointAngle(contour1, contour2);
 
+        // convert back to original indices
+        MeshUtil::Correspondence output = MeshUtil::Correspondence();
+        for(auto pair : correspondence_indices) {
+            output.push_back(std::make_pair(source[pair[0]], neighbour[pair[1]]));
+        }
+
+        return output;
     }
 }  // namespace Modifications.
