@@ -12,6 +12,7 @@ set(RECONSTRUCTION_SRCS main.cpp
         MeshUtil.cpp ../include/MeshUtil.hpp
         Surface.cpp ../include/Surface.hpp
         ContourCorrespondence.cpp ../include/ContourCorrespondence.hpp
+        Modifications.cpp ../include/Modifications.hpp
         ../include/EmptyContour.hpp
         ../include/ReconstructionErrors.hpp)
 

@@ -126,7 +126,7 @@ namespace Modifications {
     std::vector<float> anglesInContour(const std::vector<glm::vec3>& contour) {
         std::vector<float> angles = std::vector<float>();
         for(auto point : contour) {
-            angles.push_back(point);
+            angles.push_back(angleOfPoint(point));
         }
         return angles;
     }
@@ -243,8 +243,8 @@ namespace Modifications {
         // undo reordering of contours
         MeshUtil::Correspondence matchesFixedOrder = MeshUtil::Correspondence();
         for(auto match : matches) {
-            int i = (match[0] + c1start) % c1metrics.size();
-            int j = (match[1] + c2start) % c2metrics.size();
+            int i = (match.first + c1start) % c1metrics.size();
+            int j = (match.second + c2start) % c2metrics.size();
             matchesFixedOrder.push_back(std::make_pair(i, j));
         }
 
@@ -264,7 +264,7 @@ namespace Modifications {
         // convert back to original indices
         MeshUtil::Correspondence output = MeshUtil::Correspondence();
         for(auto pair : correspondenceIndices) {
-            output.push_back(std::make_pair(source[pair[0]], neighbour[pair[1]]));
+            output.push_back(std::make_pair(source[pair.first], neighbour[pair.second]));
         }
 
         return output;

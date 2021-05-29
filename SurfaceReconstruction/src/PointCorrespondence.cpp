@@ -1,4 +1,5 @@
 #include "PointCorrespondence.hpp"
+#include "Modifications.hpp"
 
 namespace PointCorrespondence {
     using std::vector;
@@ -128,6 +129,10 @@ namespace PointCorrespondence {
             }
             case Algorithm::shortestangle: {
                 throw NotImplemented();
+            }
+            case Algorithm::pointangle: {
+                correspondence = Modifications::pointCorrespondencePointAngle(points, source, neighbour);
+                break;
             }
         }
 
