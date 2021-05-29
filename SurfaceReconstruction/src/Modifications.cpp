@@ -4,7 +4,7 @@
 
 namespace Modifications {
     // find angle between 0 and 1 where 0 is x-axis and 1 is full revolution
-    float angle_of_point(glm::vec3 point) 
+    float angleOfPoint(glm::vec3 point) 
     {
         if(point[0] == 0.0f) {  // on y-axis
             if(point[1] >= 0.0f) {
@@ -24,7 +24,10 @@ namespace Modifications {
         return ang / (2 * PI);
     }
 
-    std::vector<glm::vec3> translate_contour(const std::vector<glm::vec3>& contour, float x, float y, float z) {
+    std::vector<glm::vec3> translateContour(const std::vector<glm::vec3>& contour, 
+                                            float x, 
+                                            float y, 
+                                            float z) {
         std::vector<glm::vec3> result = std::vector<glm::vec3>();
         for(int i = 0; i < contour.size(); i++) {
             glm::vec3 point = contour[i];
@@ -46,7 +49,8 @@ namespace Modifications {
         return result;
     }
 
-    std::vector<glm::vec3> reorder_from_index(const std::vector<glm::vec3>& contour, int start)
+    std::vector<glm::vec3> reorderFromIndex(const std::vector<glm::vec3>& contour, 
+                                            int start)
     {
         std::vector<glm::vec3> result = std::vector<glm::vec3>();
         for(int i = 0; i < contour.size(); i++) {
@@ -56,7 +60,7 @@ namespace Modifications {
         return result;
     }
 
-    int starting_point(const std::vector<glm::vec3>& contour) 
+    int startingPoint(const std::vector<glm::vec3>& contour) 
     {
         // find starting candidates
         std::vector<int> candidates;
@@ -90,7 +94,7 @@ namespace Modifications {
     }
 
 
-    glm::vec3 contour_centroid(const std::vector<glm::vec3>& contour) 
+    glm::vec3 contourCentroid(const std::vector<glm::vec3>& contour) 
     {
         std::vector<glm::vec3> triangle_centroids = std::vector<glm::vec3>();
         std::vector<float> triangle_areas = std::vector<float>();
@@ -119,14 +123,96 @@ namespace Modifications {
         return centroid;
     } 
 
+    std::vector<float> anglesInContour(const std::vector<glm::vec3>& contour) {
+        std::vector<float> angles = std::vector<float>();
+        for(auto point : contour) {
+            angles.push_back(point);
+        }
+        return angles;
+    }
+
+    // ensure angle is always increasing
+    std::vector<float> angleMonoticity(const std::vector<float>& angs) {
+        std::vector<float> result(angs);
+        for(int i = 0; i < result.size(); i++) {
+            if(i == 0) {
+                continue;
+            }
+            float ang_current = result[i];
+            float ang_previous = result[i - 1];
+            if(ang_current < ang_previous) {
+                result[i] = ang_previous;
+            }
+        }
+        return result;
+    }
+
+    std::vector<float> progressionAroundContour(const std::vector<glm::vec3>& contour) {
+        std::vector<float> result = std::vector<float>();
+        for(int i = 0; i < contour.size(); i++) {
+            result.push_back( ((float)i) / contour.size() );
+        }
+        return result;
+    }
+
+    std::vector<float> weightedMetrics(std::vector<float> weights, 
+                                                    std::vector<std::vector<float> > metrics)
+    {
+        std::vector<float> result = std::vector<float>(metrics[0].size(), 0);
+        for(int w = 0; w < weights.size(); w++) {
+            float weight = weights[w];
+            std::vector<float> values = metrics[w];
+
+            for(int i = 0; i < values.size(); i++) {
+                result[i] += weight * values[i];
+            }
+        }
+        return result;
+    }
+
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& contour1, 
                                                             const std::vector<glm::vec3>& contour2)
     {
-        glm::vec3 centroid1 = contour_centroid(contour1);
-        glm::vec3 centroid2 = contour_centroid(contour2);
 
-        std::vector<glm::vec3> c1 = translate_contour(contour1, -centroid1[0], -centroid1[1], 0);
-        std::vector<glm::vec3> c2 = translate_contour(contour2, -centroid2[0], -centroid2[1], 0);
+        // could wrap all this preprocessing into a function so don't repeat code for both contours
+        glm::vec3 centroid1 = contourCentroid(contour1);
+        glm::vec3 centroid2 = contourCentroid(contour2);
+
+        std::vector<glm::vec3> c1 = translateContour(contour1, -centroid1[0], -centroid1[1], 0);
+        std::vector<glm::vec3> c2 = translateContour(contour2, -centroid2[0], -centroid2[1], 0);
+
+        int c1start = startingPoint(c1);
+        int c2start = startingPoint(c2);
+
+        std::vector<glm::vec3> c1reordered = reorderFromIndex(c1, c1start);
+        std::vector<glm::vec3> c2reordered = reorderFromIndex(c2, c2start);
+
+        // angles of every point in contour
+        std::vector<float> c1angs = anglesInContour(c1reordered);
+        std::vector<float> c2angs = anglesInContour(c2reordered);
+
+        c1angs = angleMonoticity(c1angs);
+        c2angs = angleMonoticity(c2angs);
+
+        // distance around contour by point count
+        std::vector<float> c1prog = progressionAroundContour(c1reordered);
+        std::vector<float> c2prog = progressionAroundContour(c2reordered);
+
+        float ANG_WEIGHT = 0.3;
+        std::vector<float> metricWeights = std::vector<float>();
+        metricWeights.push_back(ANG_WEIGHT);  // weight angle by ANG_WEIGHT
+        metricWeights.push_back(1 - ANG_WEIGHT);  // remaining weight given to progression
+
+        std::vector<std::vector<float> > c1metricInputs = std::vector<std::vector<float> >();
+        c1metricInputs.push_back(c1angs);
+        c1metricInputs.push_back(c1prog);
+
+        std::vector<std::vector<float> > c2metricInputs = std::vector<std::vector<float> >();
+        c2metricInputs.push_back(c2angs);
+        c2metricInputs.push_back(c2prog);
+
+        std::vector<float> c1metrics = weightedMetrics(metricWeights, c1metricInputs);
+        std::vector<float> c2metrics = weightedMetrics(metricWeights, c2metricInputs);
     }
 
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& points,
