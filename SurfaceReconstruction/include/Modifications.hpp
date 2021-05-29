@@ -1,6 +1,7 @@
 #ifndef SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP
 #define SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP
 
+#include <glm/trigonometric.hpp>
 #include <glm/geometric.hpp>
 
 #include "Contours.hpp"

@@ -1,6 +1,29 @@
 #include "Modifications.hpp"
 
+#define PI 3.14159265f
+
 namespace Modifications {
+    // find angle between 0 and 1 where 0 is x-axis and 1 is full revolution
+    float angle_of_point(glm::vec3 point) 
+    {
+        if(point[0] == 0.0f) {  // on y-axis
+            if(point[1] >= 0.0f) {
+                return 0.25;
+            } else {
+                return 0.75;
+            }
+        }
+
+        float ang = glm::atan(point[1] / point[0]);
+        if(point[0] < 0.0f) {  // left half
+            ang += PI;
+        }
+        if(point[0] >= 0 && point[1] < 0) {  // bottom right quadrant
+            ang += 2 * PI;
+        }
+        return ang / (2 * PI);
+    }
+
     std::vector<glm::vec3> translate_contour(const std::vector<glm::vec3>& contour, float x, float y, float z) {
         std::vector<glm::vec3> result = std::vector<glm::vec3>();
         for(int i = 0; i < contour.size(); i++) {
