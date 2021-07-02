@@ -131,9 +131,7 @@ namespace Modifications {
             glm::vec3 p2 = contour[i + 2];
 
             glm::vec3 triangleCentroid = (p0 + p1 + p2) * (float)(1.0 / 3.0);
-            printVec(glm::cross(p1 - p0, p2 - p0));
             float triangleArea = glm::cross(p1 - p0, p2 - p0)[2] * (float)(1.0 / 2.0);
-            // std::cout << triangleArea << std::endl;
             triangleCentroids.push_back(triangleCentroid);
             triangleAreas.push_back(triangleArea);
         }
@@ -227,7 +225,7 @@ namespace Modifications {
         std::vector<float> c1prog = progressionAroundContour(c1reordered);
         std::vector<float> c2prog = progressionAroundContour(c2reordered);
 
-        float ANG_WEIGHT = 0.3;
+        float ANG_WEIGHT = 0.9;
         std::vector<float> metricWeights = std::vector<float>();
         metricWeights.push_back(ANG_WEIGHT);  // weight angle by ANG_WEIGHT
         metricWeights.push_back(1 - ANG_WEIGHT);  // remaining weight given to progression
