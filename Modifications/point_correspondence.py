@@ -237,8 +237,63 @@ def correspond(ctr1, ctr2):
     
     return matches_fixed_order, [(c1x, c1y), (c2x, c2y)]
 
+def linear_regression(points):
+    ''' return (m, b) so that y = mx + b is best fit of points '''
+    x_mean = sum([p[0] for p in points]) / len(points)
+    SSxx = sum([(p[0] - x_mean) ** 2 for p in points])
+
+    y_mean = sum([p[1] for p in points]) / len(points)
+    SSxy = sum([(p[0] - x_mean) * (p[1] - y_mean) for p in points])  # TODO may need abs()
+
+    slope = SSxy / SSxx if SSxx !=0 else 9999
+    b = y_mean - slope * x_mean
+
+    return (slope, b)
+
+def rotate_point(p, ang):
+    x_new = p[0] * math.cos(ang) - p[1] * math.sin(ang)
+    y_new = p[0] * math.sin(ang) + p[1] * math.cos(ang)
+
+    point_new = [x_new, y_new] + list(p)[2:]
+
+    return point_new
+
+def rotate_contour(ctr, ang):
+    return [rotate_point(p, ang) for p in ctr]
+
+def aligned_dtw(ctr1, ctr2):
+    oc1 = opencv_contour_to_list(ctr1, z=0)
+    oc2 = opencv_contour_to_list(ctr2, z=128)
+
+    c1x, c1y = centroid(oc1)
+    c2x, c2y = centroid(oc2)
+
+    # make it so each contour's centroid is at 0, 0
+    c1 = translate(oc1, x=-c1x, y=-c1y)
+    c2 = translate(oc2, x=-c2x, y=-c2y)
+
+    # find dominant axis first contour
+    c1m, c1b = linear_regression(c1)
+
+    # rotate both contours by this amount
+    c1rad = math.atan(c1m)
+    c1r = rotate_contour(c1, -c1rad)
+    c2r1 = rotate_contour(c2, -c1rad)
+
+    # correct second contour
+    c2m, c2b = linear_regression(c2r1)
+    c2rad = math.atan(c2m)
+    c2r = rotate_contour(c2r1, -c2rad)
+
+    # run DTW on each of these
+    # for this python test, will use point_angle as a substitute
+    matches = correspond(c1r, c2r)
+
 def main():
     ''' tests '''
+    print(linear_regression([(0, 0), (1, 0.5), (3, 2), (3, 4), (-1, 3), (-2, 1), (-4, -5)]))
+    quit()
+
     contour1 = get_contour_from_image("Modifications/data/contour_single.png")
     contour2 = get_contour_from_image("Modifications/data/contour_double.png")
     matches, centroids = correspond(contour1, contour2)
