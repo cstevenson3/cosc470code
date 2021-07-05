@@ -31,7 +31,11 @@ def find_contours(img):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
-def draw_contours(img, contours, min_size=0):
+def draw_contours(img, contours, min_size=0, x=0, y=0):
+    if len(contours) > 0 and not isinstance(contours[0], list):
+        contours = [opencv_contour_to_list(c) for c in contours]
+    contours = [translate(c, x=x, y=y) for c in contours]
+    contours = [list_to_opencv_contour(c) for c in contours]
     contours_drawn = img.copy()
     for contour in contours:
         area = cv2.contourArea(contour)
@@ -39,6 +43,11 @@ def draw_contours(img, contours, min_size=0):
             continue
         contours_drawn = cv2.drawContours(contours_drawn, [contour], -1, (0,0,255), 2)
     return contours_drawn
+
+def display_contours(contours):
+    black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
+    black = draw_contours(black, contours, x=64, y=64)
+    display(black)
 
 def draw_line(img, start, finish, color=(0, 255, 0), thickness=1):
     return cv2.line(img, start, finish, color, thickness)
@@ -109,7 +118,14 @@ def translate(points, x=0, y=0, z=0):
     ''' create new points list translated '''
     result = []
     for p in points:
-        result.append([p[0] + x, p[1] + y, p[2] + z])
+        p_new = p[:]
+        if x != 0:
+            p_new[0] += x
+        if y != 0:
+            p_new[1] += y
+        if z != 0:
+            p_new[2] += z
+        result.append(p_new)
     return result
 
 def starting_point(ctr):
@@ -255,6 +271,50 @@ def linear_regression(points):
 
     return (slope, b)
 
+def linear_regression_2(points):
+    n = len(points)
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+    sumX = sum(xs)
+    sumX2 = sum([x * x for x in xs])
+    sumY = sum(ys)
+    sumXY = sum([p[0] * p[1] for p in points])
+
+    b = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
+    m = (sumY - b * sumX) / n
+
+    return (m, b)
+
+def linear_regression_3(points):
+    sum_x = 0
+    sum_y = 0
+    for p in points:
+        if p[0] < 0:
+            sum_x += -p[0]
+            sum_y += -p[1]
+        else:
+            sum_x += p[0]
+            sum_y += p[1]
+    return (sum_y/sum_x if sum_x != 0 else 9999), 0
+
+def linear_regression_4(points):
+    # find best ax + by = 0
+    best_distance = float("inf")
+    best_a = 1
+    best_b = 1
+    for a in range(10):
+        for b in range(10):
+            total_distance = 0
+            for p in points:
+                distance = abs(a * p[0] + b * p[1]) / math.sqrt(a * a + b * b)
+                total_distance += distance
+            if total_distance < best_distance:
+                best_distance = total_distance
+                best_a = a
+                best_b = b
+    return -best_a/best_b, 0
+
+
 def rotate_point(p, ang):
     x_new = p[0] * math.cos(ang) - p[1] * math.sin(ang)
     y_new = p[0] * math.sin(ang) + p[1] * math.cos(ang)
@@ -276,27 +336,23 @@ def aligned_dtw(ctr1, ctr2):
     # make it so each contour's centroid is at 0, 0
     c1 = translate(oc1, x=-c1x, y=-c1y)
     c2 = translate(oc2, x=-c2x, y=-c2y)
+    display_contours([c1, c2])
 
     # find dominant axis first contour
-    c1m, c1b = linear_regression(c1)
+    c1m, c1b = linear_regression_4(c1)
 
     # rotate both contours by this amount
     c1rad = math.atan(c1m)
     c1r = rotate_contour(c1, -c1rad)
     c2r1 = rotate_contour(c2, -c1rad)
+    display_contours([c1r, c2r1])
 
     # correct second contour
-    c2m, c2b = linear_regression(c2r1)
+    c2m, c2b = linear_regression_4(c2r1)
     c2rad = math.atan(c2m)
     c2r = rotate_contour(c2r1, -c2rad)
 
-    black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
-    c1r = translate(c1r, x=64, y=64)
-    c2r = translate(c2r, x=64, y=64)
-    oc1r = list_to_opencv_contour(c1r)
-    oc2r = list_to_opencv_contour(c2r)
-    black = draw_contours(black, [oc1r, oc2r])
-    display(black)
+    display_contours([c1r, c2r])
 
     # run DTW on each of these
     # for this python test, will use point_angle as a substitute
@@ -321,8 +377,8 @@ def test_point_angle(contour1, contour2):
 
 def main():
     ''' tests '''
-    contour1 = get_contour_from_image("Modifications/data/contour_single.png")
-    contour2 = get_contour_from_image("Modifications/data/contour_double.png")
+    contour1 = get_contour_from_image("Modifications/data/contour1.png")
+    contour2 = get_contour_from_image("Modifications/data/contour2.png")
     
     aligned_dtw(contour1, contour2)
 
