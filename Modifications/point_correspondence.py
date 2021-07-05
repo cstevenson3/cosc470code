@@ -193,8 +193,8 @@ def angle_monoticity(angs):
 def correspond(ctr1, ctr2):
     ''' c1 and c2 are contours as lists of size-3 lists '''
     # add in z
-    oc1 = opencv_contour_to_list(ctr1, z=0)
-    oc2 = opencv_contour_to_list(ctr2, z=128)
+    oc1 = opencv_contour_to_list(ctr1, z=0) if not isinstance(ctr1, list) else ctr1
+    oc2 = opencv_contour_to_list(ctr2, z=128) if not isinstance(ctr2, list) else ctr2
 
     # find centroids
     # c1x, c1y = centroid_opencv(ctr1)
@@ -336,7 +336,7 @@ def aligned_dtw(ctr1, ctr2):
     # make it so each contour's centroid is at 0, 0
     c1 = translate(oc1, x=-c1x, y=-c1y)
     c2 = translate(oc2, x=-c2x, y=-c2y)
-    display_contours([c1, c2])
+    #display_contours([c1, c2])
 
     # find dominant axis first contour
     c1m, c1b = linear_regression_4(c1)
@@ -345,22 +345,20 @@ def aligned_dtw(ctr1, ctr2):
     c1rad = math.atan(c1m)
     c1r = rotate_contour(c1, -c1rad)
     c2r1 = rotate_contour(c2, -c1rad)
-    display_contours([c1r, c2r1])
+    #display_contours([c1r, c2r1])
 
     # correct second contour
     c2m, c2b = linear_regression_4(c2r1)
     c2rad = math.atan(c2m)
     c2r = rotate_contour(c2r1, -c2rad)
-
-    display_contours([c1r, c2r])
+    #display_contours([c1r, c2r])
 
     # run DTW on each of these
     # for this python test, will use point_angle as a substitute
-    # matches = correspond(c1r, c2r)
+    matches, _ = correspond(c1r, c2r)
+    return matches
 
-def test_point_angle(contour1, contour2):
-    matches, centroids = correspond(contour1, contour2)
-
+def display_contours_and_matches(contour1, contour2, matches):
     black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
     black = draw_contours(black, [contour1, contour2])
     STEP = 4
@@ -369,18 +367,20 @@ def test_point_angle(contour1, contour2):
         start = tuple(contour1[match[0]][0])
         end = tuple(contour2[match[1]][0])
         black = draw_line(black, start, end)
-    centroids = [(int(c[0]), int(c[1])) for c in centroids]
-    # for centroid in centroids:
-    #     draw_dot(black, centroid, color=(255, 255, 255))
-    draw_dot(black, centroids[0], color=(255, 255, 255))
     display(black)
+
+def test_point_angle(contour1, contour2):
+    matches, centroids = correspond(contour1, contour2)
+    display_contours_and_matches(contour1, contour2, matches)
+    
 
 def main():
     ''' tests '''
     contour1 = get_contour_from_image("Modifications/data/contour1.png")
     contour2 = get_contour_from_image("Modifications/data/contour2.png")
     
-    aligned_dtw(contour1, contour2)
+    matches = aligned_dtw(contour1, contour2)
+    display_contours_and_matches(contour1, contour2, matches)
 
 if __name__ == "__main__":
     main()
