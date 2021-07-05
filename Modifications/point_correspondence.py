@@ -54,6 +54,11 @@ def opencv_contour_to_list(c1, z=0):
     result.reverse()
     return result
 
+def list_to_opencv_contour(ctr):
+    squashed = [[p[0:2]] for p in ctr]
+    out = np.array(squashed, dtype=np.int32)
+    return out
+
 def get_contour_from_image(filename):
     img = import_image(filename)
     img = binarize(img)
@@ -285,17 +290,19 @@ def aligned_dtw(ctr1, ctr2):
     c2rad = math.atan(c2m)
     c2r = rotate_contour(c2r1, -c2rad)
 
+    black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
+    c1r = translate(c1r, x=64, y=64)
+    c2r = translate(c2r, x=64, y=64)
+    oc1r = list_to_opencv_contour(c1r)
+    oc2r = list_to_opencv_contour(c2r)
+    black = draw_contours(black, [oc1r, oc2r])
+    display(black)
+
     # run DTW on each of these
     # for this python test, will use point_angle as a substitute
-    matches = correspond(c1r, c2r)
+    # matches = correspond(c1r, c2r)
 
-def main():
-    ''' tests '''
-    print(linear_regression([(0, 0), (1, 0.5), (3, 2), (3, 4), (-1, 3), (-2, 1), (-4, -5)]))
-    quit()
-
-    contour1 = get_contour_from_image("Modifications/data/contour_single.png")
-    contour2 = get_contour_from_image("Modifications/data/contour_double.png")
+def test_point_angle(contour1, contour2):
     matches, centroids = correspond(contour1, contour2)
 
     black = np.zeros((128, 128, 3), np.uint8) # 128 is width/height of test images
@@ -311,6 +318,13 @@ def main():
     #     draw_dot(black, centroid, color=(255, 255, 255))
     draw_dot(black, centroids[0], color=(255, 255, 255))
     display(black)
+
+def main():
+    ''' tests '''
+    contour1 = get_contour_from_image("Modifications/data/contour_single.png")
+    contour2 = get_contour_from_image("Modifications/data/contour_double.png")
+    
+    aligned_dtw(contour1, contour2)
 
 if __name__ == "__main__":
     main()
