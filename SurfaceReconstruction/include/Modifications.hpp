@@ -18,6 +18,17 @@ namespace Modifications {
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& points,
                                                             const Contours::Contour& source,
                                                             const Contours::Contour& neighbour);
+
+    /**
+     * Get point correspondence by aligning contours (position and rotation) before DTW
+     * @param points        Reference to global point set.
+     * @param source        Source contour.
+     * @param neighbour     Neighbour contour.
+     * @return              A point correspondence.
+    */
+    MeshUtil::Correspondence alignedDTW(const std::vector<glm::vec3>& points,
+                                        const Contours::Contour& source,
+                                        const Contours::Contour& neighbour);
 }  // namespace Modifications.
 
 #endif //SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP

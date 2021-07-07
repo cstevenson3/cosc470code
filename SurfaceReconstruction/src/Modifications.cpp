@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <limits>
 
 #define PI 3.14159265f
 
@@ -16,6 +17,30 @@ namespace Modifications {
             printVec(vec);
             std::cout << std::endl;
         }
+    }
+
+    // Find m, b such that y = mx + b is best fit of points. 
+    // Assumes points are centered on origin already
+    glm::vec2 linearRegression(std::vector<glm::vec3>& points) {
+        float best_distance = std::numeric_limits<float>::infinity();
+        float best_a = 1;
+        float best_b = 1;
+        for(int a = 0; a < 10; a++) {
+            for(int b = 0; b < 10; b++) {
+                float total_distance = 0;
+                for(glm::vec3 p : points) {
+                    float distance = abs(a * p[0] + b * p[1]) / sqrt(a * a + b * b);
+                    total_distance += distance;
+                }
+                    
+                if(total_distance < best_distance) {
+                    best_distance = total_distance;
+                    best_a = a;
+                    best_b = b;
+                }
+            }
+        }
+        return glm::vec2(-best_a/best_b, 0.0);
     }
 
     // find angle between 0 and 1 where 0 is x-axis and 1 is full revolution
@@ -295,5 +320,29 @@ namespace Modifications {
         }
 
         return output;
+    }
+
+    MeshUtil::Correspondence alignedDTW(const std::vector<glm::vec3>& points,
+                                        const Contours::Contour& source,
+                                        const Contours::Contour& neighbour)
+    {
+        // construct contours as point arrays
+        std::vector<glm::vec3> ctr1 = std::vector<glm::vec3>();
+        std::vector<glm::vec3> ctr2 = std::vector<glm::vec3>();
+        for(int i = 0; i < source.size(); i++) {
+            ctr1.push_back(points[source[i]]);
+        }
+        for(int i = 0; i < source.size(); i++) {
+            ctr2.push_back(points[neighbour[i]]);
+        }
+
+        glm::vec3 centroid1 = contourCentroid(ctr1);
+        glm::vec3 centroid2 = contourCentroid(ctr2);
+
+        // align contours by position
+        std::vector<glm::vec3> c1 = translateContour(ctr1, -centroid1[0], -centroid1[1], 0);
+        std::vector<glm::vec3> c2 = translateContour(ctr2, -centroid2[0], -centroid2[1], 0);
+
+
     }
 }  // namespace Modifications.
