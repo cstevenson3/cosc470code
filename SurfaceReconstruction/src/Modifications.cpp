@@ -4,10 +4,13 @@
 #include <string>
 #include <limits>
 
+#include "DTW.hpp"
+
 #define PI 3.14159265f
 
 namespace Modifications {
-    void printVec(const glm::vec3& vec) {
+    void printVec(const glm::vec3& vec) 
+    {
         std::cout << "(" + std::to_string(vec[0]) + ", " + std::to_string(vec[1]) + ", " + std::to_string(vec[2]) + ")" << std::endl;
     }
 
@@ -21,7 +24,8 @@ namespace Modifications {
 
     // Find m, b such that y = mx + b is best fit of points. 
     // Assumes points are centered on origin already
-    glm::vec2 linearRegression(std::vector<glm::vec3>& points) {
+    glm::vec2 linearRegression(std::vector<glm::vec3>& points) 
+    {
         float best_distance = std::numeric_limits<float>::infinity();
         float best_a = 1;
         float best_b = 1;
@@ -77,6 +81,26 @@ namespace Modifications {
             result.push_back(point);
         }
         return result;
+    }
+
+    std::vector<glm::vec3> rotateContour(std::vector<glm::vec3>& ctr, 
+                                         float ang) 
+    {
+        std::vector<glm::vec3> output = std::vector<glm::vec3>();
+        for(glm::vec3 point : ctr) {
+            output.push_back(rotatePoint(point, ang));
+        }
+        return output;
+    }
+
+    glm::vec3 rotatePoint(glm::vec3& p, float ang)
+    {
+        float xNew = p[0] * cos(ang) - p[1] * sin(ang);
+        float yNew = p[0] * sin(ang) + p[1] * cos(ang);
+
+        glm::vec3 pointNew = glm::vec3(xNew, yNew, p[2]);
+
+        return pointNew;
     }
 
     std::vector<glm::vec3> getPointsFromContour(const std::vector<glm::vec3>& points,
@@ -343,6 +367,46 @@ namespace Modifications {
         std::vector<glm::vec3> c1 = translateContour(ctr1, -centroid1[0], -centroid1[1], 0);
         std::vector<glm::vec3> c2 = translateContour(ctr2, -centroid2[0], -centroid2[1], 0);
 
+        // find dominant direction of contour 1
+        glm::vec2 c1regression = linearRegression(c1);
+        float c1m = c1regression[0];
 
+        // rotate both contours so that contour 1 is aligned with x axis
+        float c1rad = atan(c1m);
+        std::vector<glm::vec3> c1r = rotateContour(c1, -c1rad);
+        std::vector<glm::vec3> c2r1 = rotateContour(c2, -c1rad);
+
+        // rotate second contour to align with x axis
+        glm::vec2 c2regression = linearRegression(c2r1);
+        float c2m = c2regression[0];
+        float c2rad = atan(c2m);
+        std::vector<glm::vec3> c2r = rotateContour(c2r1, -c2rad);
+
+        // prepare for DTW
+        std::vector<glm::vec3> pointsNew = std::vector<glm::vec3>();
+        Contours::Contour sourceNew = Contours::Contour();
+        Contours::Contour neighbourNew = Contours::Contour();
+
+        for(int i = 0; i < c1r.size(); i++) {
+            pointsNew.push_back(c1r[i]);
+            sourceNew.push_back(i);
+        }
+        int start = c1r.size();
+        for(int i = 0; i < c2r.size(); i++) {
+            pointsNew.push_back(c2r[i]);
+            neighbourNew.push_back(start + i);
+        }
+
+        MeshUtil::Correspondence dtwCorrespondence = DTW::getCorrespondenceWarpingWindow(points, source, neighbour, DTW::CostFunction::euclideanDistance, 0.1);
+
+        // convert back to original indices
+        for(auto pair : dtwCorrespondence) {
+            int a = pair.first;
+            int b = pair.second;
+            pair.first = source[a];
+            pair.second = neighbour[b - start];
+        }
+
+        return dtwCorrespondence;
     }
 }  // namespace Modifications.
