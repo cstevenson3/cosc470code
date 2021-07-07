@@ -83,16 +83,6 @@ namespace Modifications {
         return result;
     }
 
-    std::vector<glm::vec3> rotateContour(std::vector<glm::vec3>& ctr, 
-                                         float ang) 
-    {
-        std::vector<glm::vec3> output = std::vector<glm::vec3>();
-        for(glm::vec3 point : ctr) {
-            output.push_back(rotatePoint(point, ang));
-        }
-        return output;
-    }
-
     glm::vec3 rotatePoint(glm::vec3& p, float ang)
     {
         float xNew = p[0] * cos(ang) - p[1] * sin(ang);
@@ -101,6 +91,16 @@ namespace Modifications {
         glm::vec3 pointNew = glm::vec3(xNew, yNew, p[2]);
 
         return pointNew;
+    }
+
+    std::vector<glm::vec3> rotateContour(std::vector<glm::vec3>& ctr, 
+                                         float ang) 
+    {
+        std::vector<glm::vec3> output = std::vector<glm::vec3>();
+        for(glm::vec3 point : ctr) {
+            output.push_back(rotatePoint(point, ang));
+        }
+        return output;
     }
 
     std::vector<glm::vec3> getPointsFromContour(const std::vector<glm::vec3>& points,
