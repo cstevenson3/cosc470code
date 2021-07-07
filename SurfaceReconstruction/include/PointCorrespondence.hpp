@@ -20,7 +20,8 @@ namespace PointCorrespondence {
         dynamictimewarping,
         dynamictimewarpingwindow,
         shortestangle,
-        pointangle
+        pointangle,
+        aligneddtw
     };
 
 

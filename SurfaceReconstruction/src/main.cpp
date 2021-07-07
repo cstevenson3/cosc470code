@@ -24,8 +24,8 @@ namespace {
 
         Surface::Reconstruction reconstruction;
         reconstruction.reconstructTwoWay(ContourCorrespondence::CorrespondenceMethod::centroidWithinRadius,
-                                   PointCorrespondence::Algorithm::pointangle,
-                                   "Output/real-match-point-angle-50-ang-90.ply");
+                                   PointCorrespondence::Algorithm::aligneddtw,
+                                   "Output/real-match-aligned-dtw-10.ply");
 
         timer.stop();
         timer.printElapsedTime();

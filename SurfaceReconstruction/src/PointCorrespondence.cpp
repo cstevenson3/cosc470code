@@ -134,6 +134,10 @@ namespace PointCorrespondence {
                 correspondence = Modifications::pointCorrespondencePointAngle(points, source, neighbour);
                 break;
             }
+            case Algorithm::aligneddtw: {
+                correspondence = Modifications::alignedDTW(points, source, neighbour);
+                break;
+            }
         }
 
         return correspondence;
