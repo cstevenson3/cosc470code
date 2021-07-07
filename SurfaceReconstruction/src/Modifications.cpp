@@ -356,7 +356,7 @@ namespace Modifications {
         for(int i = 0; i < source.size(); i++) {
             ctr1.push_back(points[source[i]]);
         }
-        for(int i = 0; i < source.size(); i++) {
+        for(int i = 0; i < neighbour.size(); i++) {
             ctr2.push_back(points[neighbour[i]]);
         }
 
