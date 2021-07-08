@@ -152,7 +152,8 @@ namespace Modifications {
 
         if(candidates.size() == 0) {
             std::cout << "No candidates" << std::endl;
-            // printContour(contour);
+            printContour(contour);
+            throw NotImplemented();
         }
 
         // there should be at least one candidate if the centroid is correct and contour is continuous
@@ -355,10 +356,19 @@ namespace Modifications {
         std::vector<glm::vec3> ctr2 = std::vector<glm::vec3>();
         for(int i = 0; i < source.size(); i++) {
             ctr1.push_back(points[source[i]]);
+            // rearrange vertex order
+            float temp = ctr1[i][2];
+            ctr1[i][2] = ctr1[i][1];
+            ctr1[i][1] = temp;
         }
         for(int i = 0; i < neighbour.size(); i++) {
             ctr2.push_back(points[neighbour[i]]);
+            float temp = ctr2[i][2];
+            ctr2[i][2] = ctr2[i][1];
+            ctr2[i][1] = temp;
         }
+
+        printContour(ctr1);
 
         glm::vec3 centroid1 = contourCentroid(ctr1);
         glm::vec3 centroid2 = contourCentroid(ctr2);
@@ -388,16 +398,25 @@ namespace Modifications {
         Contours::Contour neighbourNew = Contours::Contour();
 
         for(int i = 0; i < c1r.size(); i++) {
-            pointsNew.push_back(c1r[i]);
+            glm::vec3 point = c1r[i];
+            float temp = point[2];
+            point[2] = point[1];
+            point[1] = temp;
+            pointsNew.push_back(point);
             sourceNew.push_back(i);
         }
         int start = c1r.size();
         for(int i = 0; i < c2r.size(); i++) {
-            pointsNew.push_back(c2r[i]);
+            glm::vec3 point = c1r[i];
+            float temp = point[2];
+            point[2] = point[1];
+            point[1] = temp;
+            pointsNew.push_back(point);
             neighbourNew.push_back(start + i);
         }
 
         MeshUtil::Correspondence dtwCorrespondence = DTW::getCorrespondenceWarpingWindow(pointsNew, sourceNew, neighbourNew, DTW::CostFunction::euclideanDistance, 0.1);
+        // MeshUtil::Correspondence dtwCorrespondence = pointCorrespondencePointAngle(pointsNew, sourceNew, neighbourNew);
 
         // convert back to original indices
         for(auto pair : dtwCorrespondence) {
