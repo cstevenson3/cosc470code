@@ -397,7 +397,7 @@ namespace Modifications {
             neighbourNew.push_back(start + i);
         }
 
-        MeshUtil::Correspondence dtwCorrespondence = DTW::getCorrespondenceWarpingWindow(points, source, neighbour, DTW::CostFunction::euclideanDistance, 0.1);
+        MeshUtil::Correspondence dtwCorrespondence = DTW::getCorrespondenceWarpingWindow(pointsNew, sourceNew, neighbourNew, DTW::CostFunction::euclideanDistance, 0.1);
 
         // convert back to original indices
         for(auto pair : dtwCorrespondence) {
