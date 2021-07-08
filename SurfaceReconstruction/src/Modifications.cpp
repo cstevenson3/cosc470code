@@ -352,23 +352,8 @@ namespace Modifications {
                                         const Contours::Contour& neighbour)
     {
         // construct contours as point arrays
-        std::vector<glm::vec3> ctr1 = std::vector<glm::vec3>();
-        std::vector<glm::vec3> ctr2 = std::vector<glm::vec3>();
-        for(int i = 0; i < source.size(); i++) {
-            ctr1.push_back(points[source[i]]);
-            // rearrange vertex order
-            float temp = ctr1[i][2];
-            ctr1[i][2] = ctr1[i][1];
-            ctr1[i][1] = temp;
-        }
-        for(int i = 0; i < neighbour.size(); i++) {
-            ctr2.push_back(points[neighbour[i]]);
-            float temp = ctr2[i][2];
-            ctr2[i][2] = ctr2[i][1];
-            ctr2[i][1] = temp;
-        }
-
-        printContour(ctr1);
+        std::vector<glm::vec3> ctr1 = getPointsFromContour(points, source);
+        std::vector<glm::vec3> ctr2 = getPointsFromContour(points, neighbour);
 
         glm::vec3 centroid1 = contourCentroid(ctr1);
         glm::vec3 centroid2 = contourCentroid(ctr2);
@@ -416,7 +401,7 @@ namespace Modifications {
         }
 
         MeshUtil::Correspondence dtwCorrespondence = DTW::getCorrespondenceWarpingWindow(pointsNew, sourceNew, neighbourNew, DTW::CostFunction::euclideanDistance, 0.1);
-        // MeshUtil::Correspondence dtwCorrespondence = pointCorrespondencePointAngle(pointsNew, sourceNew, neighbourNew);
+        //MeshUtil::Correspondence dtwCorrespondence = pointCorrespondencePointAngle(pointsNew, sourceNew, neighbourNew);
 
         // convert back to original indices
         for(auto pair : dtwCorrespondence) {

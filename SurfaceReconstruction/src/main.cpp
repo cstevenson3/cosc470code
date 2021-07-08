@@ -24,8 +24,8 @@ namespace {
 
         Surface::Reconstruction reconstruction;
         reconstruction.reconstructTwoWay(ContourCorrespondence::CorrespondenceMethod::centroidWithinRadius,
-                                   PointCorrespondence::Algorithm::aligneddtw,
-                                   "Output/real-match-aligned-dtw-10.ply");
+                                   PointCorrespondence::Algorithm::dynamictimewarpingwindow,
+                                   "Output/real-match-dtw.ply");
 
         timer.stop();
         timer.printElapsedTime();
