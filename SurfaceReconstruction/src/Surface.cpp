@@ -63,6 +63,9 @@ namespace Surface {
                                                                                         reverseCorrespondence, 
                                                                                         pointCorrespondenceMethod);
 
+            triangles.insert(triangles.end(), ti.begin(), ti.end());
+            continue; // TODO switching between methods
+
             for (auto correspondence : contourCorrespondence) {
                 if (correspondence.second.empty()) {
                     std::cout << "There is an unmatched contour.\n";

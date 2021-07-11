@@ -591,7 +591,6 @@ namespace Modifications {
                 }
             }
         }
-        printMergedCorrespondence(mergedContourCorrespondence);
-        return std::vector<MeshUtil::TriangleIndices>();
+        return result;
     }
 }  // namespace Modifications.
