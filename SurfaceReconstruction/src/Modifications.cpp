@@ -414,6 +414,89 @@ namespace Modifications {
         return dtwCorrespondence;
     }
 
+    template <class T>
+    bool vectorContains(std::vector<T>& vector, T element) {
+        for(T item : vector) {
+            if(item == element) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    template <class T>
+    void appendWithoutDuplicates(std::vector<T>& vector, std::vector<T>& items) {
+        for(T item : items) {
+            if(vectorContains(vector, item)) {
+                continue;
+            } else {
+                vector.push_back(item);
+            }
+        }
+    }
+
+    /**
+     * Merge contour correspondences in both directions to give a list of pairs of lists of contour indices
+     * Pairs represent connections between slices
+    */
+    std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > > mergeCorrepsondenceDirections(std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
+                                                                                                         std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence)
+    {
+        std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > > result = std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > >();
+        
+        // forward correspondences
+        for(ContourCorrespondence::CorrespondenceIndices forward : forwardCorrespondence) {
+            uint64_t from = forward.first;
+            std::vector<uint64_t> fromVec = std::vector<uint64_t>();
+            fromVec.push_back(from);
+            std::vector<uint64_t> to = forward.second;
+            bool merged = false;
+            for(int j = 0; j < result.size(); j++) {
+                if(vectorContains(result[j].first, from)) {
+                    appendWithoutDuplicates(result[j].second, to);
+                    merged = true;
+                }
+                for(uint64_t toItem : to) {
+                    if(vectorContains(result[j].second, toItem)) {
+                        appendWithoutDuplicates(result[j].first, fromVec);
+                        appendWithoutDuplicates(result[j].second, to);
+                        merged = true;
+                    }
+                }
+            }
+            if(!merged) {
+                result.push_back(std::make_pair(fromVec, to));
+            }
+        }
+
+        // reverse correspondences
+        for(ContourCorrespondence::CorrespondenceIndices reverse : reverseCorrespondence) {
+            uint64_t from = reverse.first;
+            std::vector<uint64_t> fromVec = std::vector<uint64_t>();
+            fromVec.push_back(from);
+            std::vector<uint64_t> to = reverse.second;
+            bool merged = false;
+            for(int j = 0; j < result.size(); j++) {
+                if(vectorContains(result[j].second, from)) {
+                    appendWithoutDuplicates(result[j].first, to);
+                    merged = true;
+                }
+                for(uint64_t toItem : to) {
+                    if(vectorContains(result[j].first, toItem)) {
+                        appendWithoutDuplicates(result[j].second, fromVec);
+                        appendWithoutDuplicates(result[j].first, to);
+                        merged = true;
+                    }
+                }
+            }
+            if(!merged) {
+                result.push_back(std::make_pair(to, fromVec));
+            }
+        }
+
+        return result;
+    }
+
     std::vector<MeshUtil::TriangleIndices> contourSplitting(Contours::Stack& contourStack, 
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence)
