@@ -550,13 +550,13 @@ namespace Modifications {
                         case 1: {
                             // one to one
                             Contours::Contour source = sourceContourList[joint.first[0]];
-                            Contours::Contour neighbour = sourceContourList[joint.second[0]];
+                            Contours::Contour neighbour = neighbourContourList[joint.second[0]];
                             MeshUtil::Correspondence pc = PointCorrespondence::getPointCorrespondence(points, 
                                                                                                       source,
                                                                                                       neighbour,
                                                                                                       pointCorrespondenceMethod);
                             std::vector<MeshUtil::TriangleIndices> newTriangles = MeshUtil::triangulate(pc);                                                                
-                            result.insert(result.end(), result.begin(), newTriangles.end());
+                            result.insert(result.end(), newTriangles.begin(), newTriangles.end());
                             break;
                         }
                         case 2: {
