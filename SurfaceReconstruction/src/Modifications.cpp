@@ -413,4 +413,11 @@ namespace Modifications {
 
         return dtwCorrespondence;
     }
+
+    std::vector<MeshUtil::TriangleIndices> contourSplitting(Contours::Stack& contourStack, 
+                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
+                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence)
+    {
+        
+    }
 }  // namespace Modifications.
