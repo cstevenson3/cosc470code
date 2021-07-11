@@ -1,5 +1,7 @@
 #include "Surface.hpp"
 
+#include "Modifications.hpp"
+
 namespace Surface {
     using std::vector;
     using std::string;
@@ -53,6 +55,13 @@ namespace Surface {
 
             auto reverseCorrespondence = ContourCorrespondence::findContourCorrespondenceIndices(contourStack.points,
                                                                                           neighbourContourList, sourceContourList, correspondenceMethod);
+
+            Modifications::contourSplitting(contourStack.points, 
+                                            sourceContourList, 
+                                            neighbourContourList, 
+                                            contourCorrespondence, 
+                                            reverseCorrespondence, 
+                                            pointCorrespondenceMethod);
 
             for (auto correspondence : contourCorrespondence) {
                 if (correspondence.second.empty()) {

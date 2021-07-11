@@ -526,11 +526,72 @@ namespace Modifications {
         std::cout << "]" << std::endl;
     }
 
-    std::vector<MeshUtil::TriangleIndices> contourSplitting(Contours::Stack& contourStack, 
+    std::vector<MeshUtil::TriangleIndices> contourSplitting(std::vector<glm::vec3>& points,
+                                                            std::vector<Contours::Contour>& sourceContourList,
+                                                            std::vector<Contours::Contour>& neighbourContourList,
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
-                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence)
+                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence,
+                                                            PointCorrespondence::Algorithm pointCorrespondenceMethod)
     {
+        std::vector<MeshUtil::TriangleIndices> result = std::vector<MeshUtil::TriangleIndices>();
         std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > > mergedContourCorrespondence = mergeCorrepsondenceDirections(forwardCorrespondence, reverseCorrespondence);
+        for(auto joint : mergedContourCorrespondence) {
+            switch(joint.first.size()) {
+                case 0: {
+                    // unmatched contour
+                    break;
+                }
+                case 1: {
+                    switch(joint.second.size()) {
+                        case 0: {
+                            // unmatched contour
+                            break;
+                        }
+                        case 1: {
+                            // one to one
+                            Contours::Contour source = sourceContourList[joint.first[0]];
+                            Contours::Contour neighbour = sourceContourList[joint.second[0]];
+                            MeshUtil::Correspondence pc = PointCorrespondence::getPointCorrespondence(points, 
+                                                                                                      source,
+                                                                                                      neighbour,
+                                                                                                      pointCorrespondenceMethod);
+                            std::vector<MeshUtil::TriangleIndices> newTriangles = MeshUtil::triangulate(pc);                                                                
+                            result.insert(result.end(), result.begin(), newTriangles.end());
+                            break;
+                        }
+                        case 2: {
+                            // one to two
+                            break;
+                        }
+                        default: {
+                            // one to many, unimplemented
+                            break;
+                        }
+                    }
+                }
+                case 2: {
+                    switch(joint.second.size()) {
+                        case 0: {
+                            // unmatched contour
+                            break;
+                        }
+                        case 1: {
+                            // two to one
+                            break;
+                        }
+                        default: {
+                            // 2 to many, unimplemented
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    // many to any, unimplemented
+                    break;
+                }
+            }
+        }
         printMergedCorrespondence(mergedContourCorrespondence);
+        return std::vector<MeshUtil::TriangleIndices>();
     }
 }  // namespace Modifications.

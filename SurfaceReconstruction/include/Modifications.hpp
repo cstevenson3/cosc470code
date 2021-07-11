@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Contours.hpp"
+#include "PointCorrespondence.hpp"
 #include "ContourCorrespondence.hpp"
 #include "MeshUtil.hpp"
 
@@ -33,14 +34,19 @@ namespace Modifications {
                                         const Contours::Contour& neighbour);
 
     /**
-     * Branch point correspondence by splitting the single contour
-     * @param contourStack Contour stack with points and contours
+     * Branch point correspondence across two slices by splitting the single contour
+     * @param points Coordinates of points
+     * @param sourceContourList The source contours for one slice
+     * @param neighbourContourList The neighbour contours for the other slice
      * @param forwardCorrespondence Contour correspondence in one direction
      * @param reverseCorrespondence Contour correspondence in the opposite direction
     */
-    std::vector<MeshUtil::TriangleIndices> contourSplitting(Contours::Stack& contourStack, 
+    std::vector<MeshUtil::TriangleIndices> contourSplitting(std::vector<glm::vec3>& points,
+                                                            std::vector<Contours::Contour>& sourceContourList,
+                                                            std::vector<Contours::Contour>& neighbourContourList,
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
-                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence);
+                                                            std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence,
+                                                            PointCorrespondence::Algorithm pointCorrespondenceMethod);
 }  // namespace Modifications.
 
 #endif //SURFACE_RECONSTRUCTION_MODIFICATIONS_HPP
