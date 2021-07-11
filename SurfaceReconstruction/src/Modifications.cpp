@@ -497,10 +497,40 @@ namespace Modifications {
         return result;
     }
 
+    void printIndices(std::vector<uint64_t>& indices)
+    {
+        std::cout << "[";
+        for(auto index : indices) {
+            std::cout << index;
+            std::cout << ", ";
+        }
+        std::cout << "]";
+    }
+
+    void printJoint(std::pair<std::vector<uint64_t>, std::vector<uint64_t> >& joint)
+    {
+        std::cout << "(";
+        printIndices(joint.first);
+        std::cout << ", ";
+        printIndices(joint.second);
+        std::cout << ")";
+    }
+
+    void printMergedCorrespondence(std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > >& mc)
+    {
+        std::cout << "[";
+        for(auto pair : mc) {
+            printJoint(pair);
+            std::cout << ", ";
+        }
+        std::cout << "]" << std::endl;
+    }
+
     std::vector<MeshUtil::TriangleIndices> contourSplitting(Contours::Stack& contourStack, 
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& forwardCorrespondence, 
                                                             std::vector<ContourCorrespondence::CorrespondenceIndices>& reverseCorrespondence)
     {
-        
+        std::vector<std::pair<std::vector<uint64_t>, std::vector<uint64_t> > > mergedContourCorrespondence = mergeCorrepsondenceDirections(forwardCorrespondence, reverseCorrespondence);
+        printMergedCorrespondence(mergedContourCorrespondence);
     }
 }  // namespace Modifications.
