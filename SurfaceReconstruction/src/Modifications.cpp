@@ -526,6 +526,36 @@ namespace Modifications {
         std::cout << "]" << std::endl;
     }
 
+    std::vector<Contours::Contour> splitContour(Contours::Contour& contour, 
+                                                Contours::Contour& neighbour1, 
+                                                Contours::Contour& neighbour2)
+    {
+        std::vector<Contours::Contour> result = std::vector<Contours::Contour>();
+        if(contour.size() < 4) {
+            std::cout << "Contour too small too split" << std::endl;
+            result.push_back(contour);
+            result.push_back(contour);
+            return result;
+        }
+
+        int halfway = contour.size() / 2;
+        Contours::Contour contour1 = Contours::Contour();
+        Contours::Contour contour2 = Contours::Contour();
+        for(int i = 0; i < halfway; i++) {
+            contour1.push_back(contour[i]);
+        }
+        contour1.push_back(contour[0]); // finish the loop
+        for(int i = halfway; i < contour.size(); i++) {
+            contour2.push_back(contour[i]);
+        }
+        contour2.push_back(contour[halfway]); // finish the loop
+
+        result.push_back(contour1);
+        result.push_back(contour2);
+
+        return result;
+    }
+
     std::vector<MeshUtil::TriangleIndices> contourSplitting(std::vector<glm::vec3>& points,
                                                             std::vector<Contours::Contour>& sourceContourList,
                                                             std::vector<Contours::Contour>& neighbourContourList,
@@ -561,6 +591,31 @@ namespace Modifications {
                         }
                         case 2: {
                             // one to two
+
+                            Contours::Contour source = sourceContourList[joint.first[0]];
+                            Contours::Contour neighbour1 = neighbourContourList[joint.second[0]];
+                            Contours::Contour neighbour2 = neighbourContourList[joint.second[1]];
+
+                            std::vector<Contours::Contour> splitted = splitContour(source, neighbour1, neighbour2);
+                            Contours::Contour source1 = splitted[0];
+                            Contours::Contour source2 = splitted[1];
+
+                            // run point correspondence for each side of split contour
+
+                            MeshUtil::Correspondence pc1 = PointCorrespondence::getPointCorrespondence(points, 
+                                                                                                       source1,
+                                                                                                       neighbour1,
+                                                                                                       pointCorrespondenceMethod);
+                            std::vector<MeshUtil::TriangleIndices> newTriangles1 = MeshUtil::triangulate(pc1);                                                                
+                            result.insert(result.end(), newTriangles1.begin(), newTriangles1.end());
+
+                            MeshUtil::Correspondence pc2 = PointCorrespondence::getPointCorrespondence(points, 
+                                                                                                       source2,
+                                                                                                       neighbour2,
+                                                                                                       pointCorrespondenceMethod);
+                            std::vector<MeshUtil::TriangleIndices> newTriangles2 = MeshUtil::triangulate(pc2);                                                            
+                            result.insert(result.end(), newTriangles2.begin(), newTriangles2.end());
+
                             break;
                         }
                         default: {
