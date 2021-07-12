@@ -565,15 +565,35 @@ namespace Modifications {
                 break;
             }
             case 1: {
-                Contours::Contour twoContourIndices = Contours::mergeContours(points, neighbour1, neighbour2);
-                std::vector<glm::vec3> twoContour = getPointsFromContour(points, twoContourIndices);
-                glm::vec3 twoContourCentroid = contourCentroid(twoContour);
-                std::vector<glm::vec3> translatedTwoContour = translateContour(twoContour, -twoContourCentroid[0], -twoContourCentroid[1], 0);
-                glm::vec2 lrTwoContour = linearRegression(translatedTwoContour);
-                float slope = lrTwoContour[0];
+                // get slope by linear regression of all two-contour points
+                // Contours::Contour twoContourIndices = Contours::mergeContours(points, neighbour1, neighbour2);
+                // std::vector<glm::vec3> twoContour = getPointsFromContour(points, twoContourIndices);
+                // glm::vec3 twoContourCentroid = contourCentroid(twoContour);
+                // std::vector<glm::vec3> translatedTwoContour = translateContour(twoContour, -twoContourCentroid[0], -twoContourCentroid[1], 0);
+                // glm::vec2 lrTwoContour = linearRegression(translatedTwoContour);
+                // float slope = lrTwoContour[0];
+                // float orthogonal = 9999;
+                // if(slope != 0) {
+                //     orthogonal = -1 / slope;
+                // }
+
+                // get slope by two-contour centroids
+                std::vector<glm::vec3> n1 = getPointsFromContour(points, neighbour1);
+                std::vector<glm::vec3> n2 = getPointsFromContour(points, neighbour2);
+                glm::vec2 n1c = contourCentroid(n1);
+                glm::vec2 n2c = contourCentroid(n2);
+
+                float x = n2c[0] - n1c[0];
+                float y = n2c[1] - n1c[1];
+
+                float slope = 9999;
+                if(x != 0) {
+                    slope = y / x;
+                }
+
                 float orthogonal = 9999;
-                if(slope != 0) {
-                    orthogonal = -1 / slope;
+                if(y != 0) {
+                    orthogonal = - x / y;
                 }
 
                 // LINE_METHOD
@@ -672,8 +692,21 @@ namespace Modifications {
                         contour2.push_back(contour[(bestStartingIndex) % contour.size()]);
                         contour2.push_back(contour[(bestStartingIndex + halfway) % contour.size()]);
 
-                        result.push_back(contour2);
-                        result.push_back(contour1);
+                        // choose contour arrangement
+                        std::vector<glm::vec3> c1points = getPointsFromContour(points, contour1);
+                        std::vector<glm::vec3> c2points = getPointsFromContour(points, contour2);
+                        glm::vec2 c1c = contourCentroid(c1points);
+                        glm::vec2 c2c = contourCentroid(c2points);
+                        float arrangement1 = glm::length(c1c - n1c) + glm::length(c2c - n2c);
+                        float arrangement2 = glm::length(c1c - n2c) + glm::length(c2c - n1c);
+                        if(arrangement1 < arrangement2) {
+                            result.push_back(contour1);
+                            result.push_back(contour2);
+                        } else {
+                            result.push_back(contour2);
+                            result.push_back(contour1);
+                        }
+                        
                         break;
                     }
                 }
