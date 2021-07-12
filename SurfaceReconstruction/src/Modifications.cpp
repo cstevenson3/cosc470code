@@ -29,8 +29,8 @@ namespace Modifications {
         float best_distance = std::numeric_limits<float>::infinity();
         float best_a = 1;
         float best_b = 1;
-        for(int a = 0; a < 10; a++) {
-            for(int b = 0; b < 10; b++) {
+        for(int a = -10; a <= 10; a++) {
+            for(int b = -10; b <= 10; b++) {
                 float total_distance = 0;
                 for(glm::vec3 p : points) {
                     float distance = abs(a * p[0] + b * p[1]) / sqrt(a * a + b * b);
@@ -526,32 +526,105 @@ namespace Modifications {
         std::cout << "]" << std::endl;
     }
 
-    std::vector<Contours::Contour> splitContour(Contours::Contour& contour, 
+    std::vector<Contours::Contour> splitContour(std::vector<glm::vec3>& points,
+                                                Contours::Contour& contour, 
                                                 Contours::Contour& neighbour1, 
                                                 Contours::Contour& neighbour2)
     {
         std::vector<Contours::Contour> result = std::vector<Contours::Contour>();
-        if(contour.size() < 4) {
-            std::cout << "Contour too small too split" << std::endl;
-            result.push_back(contour);
-            result.push_back(contour);
-            return result;
-        }
 
-        int halfway = contour.size() / 2;
-        Contours::Contour contour1 = Contours::Contour();
-        Contours::Contour contour2 = Contours::Contour();
-        for(int i = 0; i < halfway; i++) {
-            contour1.push_back(contour[i]);
-        }
-        contour1.push_back(contour[0]); // finish the loop
-        for(int i = halfway; i < contour.size(); i++) {
-            contour2.push_back(contour[i]);
-        }
-        contour2.push_back(contour[halfway]); // finish the loop
+        // METHOD
+        // 0 = split halfway with no regard for direction
+        // 1 = split halfway accounting for direction
+        int METHOD = 1;
+        switch(METHOD) {
+            case 0: {
+                if(contour.size() < 4) {
+                    std::cout << "Contour too small too split" << std::endl;
+                    result.push_back(contour);
+                    result.push_back(contour);
+                    return result;
+                }
 
-        result.push_back(contour1);
-        result.push_back(contour2);
+                int halfway = contour.size() / 2;
+                Contours::Contour contour1 = Contours::Contour();
+                Contours::Contour contour2 = Contours::Contour();
+                for(int i = 0; i < halfway + 1; i++) {
+                    contour1.push_back(contour[i]);
+                }
+                for(int i = halfway; i < contour.size(); i++) {
+                    contour2.push_back(contour[i]);
+                }
+                // finish loops
+                contour1.push_back(contour[0]);
+                contour2.push_back(contour[0]); 
+                contour2.push_back(contour[halfway]);
+
+                result.push_back(contour1);
+                result.push_back(contour2);
+                break;
+            }
+            case 1: {
+                Contours::Contour twoContourIndices = Contours::mergeContours(points, neighbour1, neighbour2);
+                std::vector<glm::vec3> twoContour = getPointsFromContour(points, twoContourIndices);
+                glm::vec3 twoContourCentroid = contourCentroid(twoContour);
+                std::vector<glm::vec3> translatedTwoContour = translateContour(twoContour, -twoContourCentroid[0], -twoContourCentroid[1], 0);
+                glm::vec2 lrTwoContour = linearRegression(translatedTwoContour);
+                float slope = lrTwoContour[0];
+                float orthogonal = 9999;
+                if(slope != 0) {
+                    orthogonal = -1 / slope;
+                }
+
+                // use orthogonal to split single contour
+                std::vector<glm::vec3> oneContour = getPointsFromContour(points, contour);
+                // aligned dominant axis with x-axis,
+                float crad = atan(slope);
+                std::vector<glm::vec3> rotatedOneContour = rotateContour(oneContour, -crad);
+                // sort points by x
+                // TODO use standard functions
+                std::vector<std::pair<u_int64_t, glm::vec3> > contourSorted = std::vector<std::pair<u_int64_t, glm::vec3> >();
+                for(int i = 0; i < rotatedOneContour.size(); i++) {
+                    glm::vec3 point = rotatedOneContour[i];
+                    std::pair<u_int64_t, glm::vec3> pair = std::make_pair(contour[i], point);
+                    bool added = false;
+                    for(int j = 0; j < contourSorted.size(); j++) {
+                        if(point[0] < contourSorted[j].second[0]) {
+                            contourSorted.insert(contourSorted.begin() + j, pair);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if(!added) {
+                        contourSorted.push_back(pair);
+                    }
+                }
+                // for now use halfway
+                int halfway = contourSorted.size() / 2;
+                Contours::Contour contour1 = Contours::Contour();
+                Contours::Contour contour2 = Contours::Contour();
+                for(int i = 0; i < halfway + 1; i++) {
+                    contour1.push_back(contourSorted[i].first);
+                }
+                for(int i = halfway; i < contour.size(); i++) {
+                    contour2.push_back(contourSorted[i].first);
+                }
+                // rerrange the contours back to correct order
+                std::sort(contour1.begin(), contour1.end());
+                std::sort(contour2.begin(), contour2.end());
+
+                // finish loops
+                contour1.push_back(contourSorted[0].first); 
+                contour2.push_back(contourSorted[0].first);
+                contour2.push_back(contourSorted[halfway].first);
+                // TODO check the contours are unbroken
+                
+                // TODO check which contours align better to which neighbours
+                result.push_back(contour2);
+                result.push_back(contour1);
+                break;
+            }
+        }
 
         return result;
     }
@@ -596,7 +669,10 @@ namespace Modifications {
                             Contours::Contour neighbour1 = neighbourContourList[joint.second[0]];
                             Contours::Contour neighbour2 = neighbourContourList[joint.second[1]];
 
-                            std::vector<Contours::Contour> splitted = splitContour(source, neighbour1, neighbour2);
+                            std::vector<Contours::Contour> splitted = splitContour(points,
+                                                                                   source, 
+                                                                                   neighbour1, 
+                                                                                   neighbour2);
                             Contours::Contour source1 = splitted[0];
                             Contours::Contour source2 = splitted[1];
 
