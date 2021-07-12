@@ -576,53 +576,107 @@ namespace Modifications {
                     orthogonal = -1 / slope;
                 }
 
-                // use orthogonal to split single contour
-                std::vector<glm::vec3> oneContour = getPointsFromContour(points, contour);
-                // aligned dominant axis with x-axis,
-                float crad = atan(slope);
-                std::vector<glm::vec3> rotatedOneContour = rotateContour(oneContour, -crad);
-                // sort points by x
-                // TODO use standard functions
-                std::vector<std::pair<u_int64_t, glm::vec3> > contourSorted = std::vector<std::pair<u_int64_t, glm::vec3> >();
-                for(int i = 0; i < rotatedOneContour.size(); i++) {
-                    glm::vec3 point = rotatedOneContour[i];
-                    std::pair<u_int64_t, glm::vec3> pair = std::make_pair(contour[i], point);
-                    bool added = false;
-                    for(int j = 0; j < contourSorted.size(); j++) {
-                        if(point[0] < contourSorted[j].second[0]) {
-                            contourSorted.insert(contourSorted.begin() + j, pair);
-                            added = true;
-                            break;
+                // LINE_METHOD
+                // 0 = rotate single contour, sort points by x, divide by a vertical line (currently broken)
+                // 1 = try different starting points and halfway points, find closest to orthogonal
+                int LINE_METHOD = 1;
+                switch(LINE_METHOD) {
+                    case 0: {
+                        std::vector<glm::vec3> oneContour = getPointsFromContour(points, contour);
+                        // aligned dominant axis with x-axis,
+                        float crad = atan(slope);
+                        std::vector<glm::vec3> rotatedOneContour = rotateContour(oneContour, -crad);
+                        // sort points by x
+                        // TODO use standard functions
+                        std::vector<std::pair<u_int64_t, glm::vec3> > contourSorted = std::vector<std::pair<u_int64_t, glm::vec3> >();
+                        for(int i = 0; i < rotatedOneContour.size(); i++) {
+                            glm::vec3 point = rotatedOneContour[i];
+                            std::pair<u_int64_t, glm::vec3> pair = std::make_pair(contour[i], point);
+                            bool added = false;
+                            for(int j = 0; j < contourSorted.size(); j++) {
+                                if(point[0] < contourSorted[j].second[0]) {
+                                    contourSorted.insert(contourSorted.begin() + j, pair);
+                                    added = true;
+                                    break;
+                                }
+                            }
+                            if(!added) {
+                                contourSorted.push_back(pair);
+                            }
                         }
-                    }
-                    if(!added) {
-                        contourSorted.push_back(pair);
-                    }
-                }
-                // for now use halfway
-                int halfway = contourSorted.size() / 2;
-                Contours::Contour contour1 = Contours::Contour();
-                Contours::Contour contour2 = Contours::Contour();
-                for(int i = 0; i < halfway + 1; i++) {
-                    contour1.push_back(contourSorted[i].first);
-                }
-                for(int i = halfway; i < contour.size(); i++) {
-                    contour2.push_back(contourSorted[i].first);
-                }
-                // rerrange the contours back to correct order
-                std::sort(contour1.begin(), contour1.end());
-                std::sort(contour2.begin(), contour2.end());
+                        // for now use halfway
+                        int halfway = contourSorted.size() / 2;
+                        Contours::Contour contour1 = Contours::Contour();
+                        Contours::Contour contour2 = Contours::Contour();
+                        for(int i = 0; i < halfway + 1; i++) {
+                            contour1.push_back(contourSorted[i].first);
+                        }
+                        for(int i = halfway; i < contour.size(); i++) {
+                            contour2.push_back(contourSorted[i].first);
+                        }
+                        // rerrange the contours back to correct order
+                        std::sort(contour1.begin(), contour1.end());
+                        std::sort(contour2.begin(), contour2.end());
 
-                // finish loops
-                contour1.push_back(contourSorted[0].first); 
-                contour2.push_back(contourSorted[0].first);
-                contour2.push_back(contourSorted[halfway].first);
-                // TODO check the contours are unbroken
-                
-                // TODO check which contours align better to which neighbours
-                result.push_back(contour2);
-                result.push_back(contour1);
-                break;
+                        // finish loops
+                        contour1.push_back(contourSorted[0].first); 
+                        contour2.push_back(contourSorted[0].first);
+                        contour2.push_back(contourSorted[halfway].first);
+                        // TODO check the contours are unbroken
+                        
+                        // TODO check which contours align better to which neighbours
+                        result.push_back(contour2);
+                        result.push_back(contour1);
+                        break;
+                    }
+                    case 1: {
+                        // use orthogonal to split single contour
+                        std::vector<glm::vec3> oneContour = getPointsFromContour(points, contour);
+                        int bestStartingIndex = 0;
+                        int bestHalfwayIndex = 2;
+                        float bestSlopeDifference = std::numeric_limits<float>::infinity();
+                        for(int startingIndex = 0; startingIndex < contour.size(); startingIndex++) {
+                            int halfwayIndex = (startingIndex + contour.size() / 2) % contour.size();
+
+                            glm::vec3 startingPoint = oneContour[startingIndex];
+                            glm::vec3 halfwayPoint = oneContour[halfwayIndex];
+
+                            float candidateSlope = 9999;
+                            float x = halfwayPoint[0] - startingPoint[0];
+                            float y = halfwayPoint[1] - startingPoint[1];
+                            if(x != 0) {
+                                candidateSlope = y / x;
+                            }
+                            if(abs(candidateSlope - orthogonal) < bestSlopeDifference) {
+                                bestSlopeDifference = abs(candidateSlope - orthogonal);
+                                bestStartingIndex = startingIndex;
+                                bestHalfwayIndex = halfwayIndex;
+                            }
+                        }
+
+                        // split contour by best indices
+                        int halfway = contour.size() / 2;
+                        Contours::Contour contour1 = Contours::Contour();
+                        Contours::Contour contour2 = Contours::Contour();
+                        for(int i = 0; i < halfway; i++) {
+                            int index = (bestStartingIndex + i) % contour.size();
+                            contour1.push_back(contour[index]);
+                        }
+                        for(int i = halfway; i < contour.size(); i++) {
+                            int index = (bestStartingIndex + i) % contour.size();
+                            contour2.push_back(contour[index]);
+                        }
+                        // finish loops
+                        contour1.push_back(contour[(bestStartingIndex + halfway) % contour.size()]);
+                        contour1.push_back(contour[(bestStartingIndex) % contour.size()]);
+                        contour2.push_back(contour[(bestStartingIndex) % contour.size()]);
+                        contour2.push_back(contour[(bestStartingIndex + halfway) % contour.size()]);
+
+                        result.push_back(contour2);
+                        result.push_back(contour1);
+                        break;
+                    }
+                }
             }
         }
 
