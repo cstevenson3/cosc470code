@@ -404,14 +404,14 @@ namespace Modifications {
         //MeshUtil::Correspondence dtwCorrespondence = pointCorrespondencePointAngle(pointsNew, sourceNew, neighbourNew);
 
         // convert back to original indices
+        MeshUtil::Correspondence originalCorrespondence = MeshUtil::Correspondence();
         for(auto pair : dtwCorrespondence) {
             int a = pair.first;
             int b = pair.second;
-            pair.first = source[a];
-            pair.second = neighbour[b - start];
+            originalCorrespondence.push_back(std::make_pair(source[a], neighbour[b - start]));
         }
 
-        return dtwCorrespondence;
+        return originalCorrespondence;
     }
 
     template <class T>
