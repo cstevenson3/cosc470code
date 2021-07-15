@@ -383,7 +383,7 @@ namespace Modifications {
         Contours::Contour neighbourNew = Contours::Contour();
 
         for(int i = 0; i < c1r.size(); i++) {
-            glm::vec3 point = c1r[i];
+            glm::vec3 point = c1[i]; // translation only
             float temp = point[2];
             point[2] = point[1];
             point[1] = temp;
@@ -392,7 +392,7 @@ namespace Modifications {
         }
         int start = c1r.size();
         for(int i = 0; i < c2r.size(); i++) {
-            glm::vec3 point = c1r[i];
+            glm::vec3 point = c2[i]; // translation only
             float temp = point[2];
             point[2] = point[1];
             point[1] = temp;
