@@ -786,6 +786,7 @@ namespace Modifications {
                             break;
                         }
                     }
+                    break;
                 }
                 case 2: {
                     switch(joint.second.size()) {
@@ -795,6 +796,32 @@ namespace Modifications {
                         }
                         case 1: {
                             // two to one
+                            Contours::Contour neighbour = neighbourContourList[joint.second[0]];
+                            Contours::Contour source1 = sourceContourList[joint.first[0]];
+                            Contours::Contour source2 = sourceContourList[joint.first[1]];
+
+                            std::vector<Contours::Contour> splitted = splitContour(points,
+                                                                                   neighbour, 
+                                                                                   source1, 
+                                                                                   source2);
+                            Contours::Contour neighbour1 = splitted[0];
+                            Contours::Contour neighbour2 = splitted[1];
+
+                            // run point correspondence for each side of split contour
+
+                            MeshUtil::Correspondence pc1 = PointCorrespondence::getPointCorrespondence(points, 
+                                                                                                       source1,
+                                                                                                       neighbour1,
+                                                                                                       pointCorrespondenceMethod);
+                            std::vector<MeshUtil::TriangleIndices> newTriangles1 = MeshUtil::triangulate(pc1);                                                                
+                            result.insert(result.end(), newTriangles1.begin(), newTriangles1.end());
+
+                            MeshUtil::Correspondence pc2 = PointCorrespondence::getPointCorrespondence(points, 
+                                                                                                       source2,
+                                                                                                       neighbour2,
+                                                                                                       pointCorrespondenceMethod);
+                            std::vector<MeshUtil::TriangleIndices> newTriangles2 = MeshUtil::triangulate(pc2);                                                            
+                            result.insert(result.end(), newTriangles2.begin(), newTriangles2.end());
                             break;
                         }
                         default: {
@@ -802,6 +829,7 @@ namespace Modifications {
                             break;
                         }
                     }
+                    break;
                 }
                 default: {
                     // many to any, unimplemented
