@@ -687,15 +687,19 @@ namespace Modifications {
                             contour2.push_back(contour[index]);
                         }
                         // introduce new points along the split for a smoother correspondence
-                        int numPointsToAdd = 5;  // hardcoded for now
+                        int numPointsToAdd = 10;  // hardcoded for now
                         glm::vec3 point1 = points[contour[(bestStartingIndex + halfway) % contour.size()]];
                         glm::vec3 point2 = points[contour[(bestStartingIndex) % contour.size()]];
+                        glm::vec3 pointOnNeighbour = points[neighbour1[0]];
+                        float scale = glm::distance(point1, point2);
+                        float Ydiff = (pointOnNeighbour[1] - point1[1]);
                         // along the line segment between these points
                         float t = 0;  // parameter from 0 to 1 along this line segment
                         std::vector<uint64_t> newPointIndices = std::vector<uint64_t>();
                         for(int n = 0; n < numPointsToAdd; n++) {
                             t = ((float)(n + 1)) / ((float)(numPointsToAdd + 1));
                             glm::vec3 newPoint = point1 + t * (point2 - point1);
+                            newPoint[1] += scale * t * (1 - t) + 0.3 * Ydiff;
                             points.push_back(newPoint);
                             newPointIndices.push_back(points.size() - 1);
                         }
