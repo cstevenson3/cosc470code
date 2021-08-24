@@ -686,10 +686,31 @@ namespace Modifications {
                             int index = (bestStartingIndex + i) % contour.size();
                             contour2.push_back(contour[index]);
                         }
+                        // introduce new points along the split for a smoother correspondence
+                        int numPointsToAdd = 5;  // hardcoded for now
+                        glm::vec3 point1 = points[contour[(bestStartingIndex + halfway) % contour.size()]];
+                        glm::vec3 point2 = points[contour[(bestStartingIndex) % contour.size()]];
+                        // along the line segment between these points
+                        float t = 0;  // parameter from 0 to 1 along this line segment
+                        std::vector<uint64_t> newPointIndices = std::vector<uint64_t>();
+                        for(int n = 0; n < numPointsToAdd; n++) {
+                            t = ((float)(n + 1)) / ((float)(numPointsToAdd + 1));
+                            glm::vec3 newPoint = point1 + t * (point2 - point1);
+                            points.push_back(newPoint);
+                            newPointIndices.push_back(points.size() - 1);
+                        }
+
                         // finish loops
                         contour1.push_back(contour[(bestStartingIndex + halfway) % contour.size()]);
+                        for(auto index : newPointIndices) {
+                            contour1.push_back(index);
+                        }
                         contour1.push_back(contour[(bestStartingIndex) % contour.size()]);
                         contour2.push_back(contour[(bestStartingIndex) % contour.size()]);
+                        std::reverse(newPointIndices.begin(), newPointIndices.end());
+                        for(auto index : newPointIndices) {
+                            contour2.push_back(index);
+                        }
                         contour2.push_back(contour[(bestStartingIndex + halfway) % contour.size()]);
 
                         // choose contour arrangement
