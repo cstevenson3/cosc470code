@@ -699,8 +699,9 @@ namespace Modifications {
                         std::vector<uint64_t> newPointIndices = std::vector<uint64_t>();
                         for(int n = 0; n < numPointsToAdd; n++) {
                             t = ((float)(n + 1)) / ((float)(numPointsToAdd + 1));
-                            glm::vec3 newPoint = point1 + t * (point2 - point1);
-                            newPoint[1] += scale * 4 * t * (1 - t);
+                            float f = 6.0 * (-0.33 * t * t * t + 0.5 * t * t);  // puts points more densely at start and end
+                            glm::vec3 newPoint = point1 + f * (point2 - point1);
+                            newPoint[1] += scale * 4 * f * (1 - f);
                             points.push_back(newPoint);
                             newPointIndices.push_back(points.size() - 1);
                         }
