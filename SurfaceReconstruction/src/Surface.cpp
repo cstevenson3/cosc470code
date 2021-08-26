@@ -56,15 +56,18 @@ namespace Surface {
             auto reverseCorrespondence = ContourCorrespondence::findContourCorrespondenceIndices(contourStack.points,
                                                                                           neighbourContourList, sourceContourList, correspondenceMethod);
 
-            std::vector<MeshUtil::TriangleIndices> ti = Modifications::contourSplitting(contourStack.points, 
+            bool CONTOUR_SPLITTING = true;
+            if(CONTOUR_SPLITTING) {
+                std::vector<MeshUtil::TriangleIndices> ti = Modifications::contourSplitting(contourStack.points, 
                                                                                         sourceContourList, 
                                                                                         neighbourContourList, 
                                                                                         contourCorrespondence, 
                                                                                         reverseCorrespondence, 
                                                                                         pointCorrespondenceMethod);
 
-            triangles.insert(triangles.end(), ti.begin(), ti.end());
-            continue; // TODO switching between methods
+                triangles.insert(triangles.end(), ti.begin(), ti.end());
+                continue;  // do not do contour merging method
+            }
 
             for (auto correspondence : contourCorrespondence) {
                 if (correspondence.second.empty()) {
