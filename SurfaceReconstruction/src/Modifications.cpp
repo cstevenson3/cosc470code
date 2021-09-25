@@ -140,7 +140,7 @@ namespace Modifications {
             int i2 = (i + 1) % contour.size();
             glm::vec3 p1 = contour[i1];
             glm::vec3 p2 = contour[i2];
-            if(p1[1] * p2[1] < 0) {  // signs have swapped, so has crossed x-axis
+            if(p1[1] * p2[1] <= 0) {  // signs have swapped, so has crossed x-axis
                 // point above x-axis is candidate
                 if(p1[1] > 0) {
                     candidates.push_back(i1);
