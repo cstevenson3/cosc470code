@@ -1,0 +1,10 @@
+{
+    "binary" : "../../SurfaceReconstruction/bin/surface_reconstruction",
+    "output_file" : "../../Output/output.ply",
+    "automation_folder" : "../../Output/automation/",
+    "test_model_originals_folder" : "../../TestModels/export/",
+    "test_model_samples_folder" : "../../TestModels/sampled/",
+    "test_model_names" : ["simple", "simple-branch", "multi-branch", "bend"],
+    "sample_prefix" : "csize_",
+    "sample_sizes": [10, 20, 30, 40, 50]
+}
