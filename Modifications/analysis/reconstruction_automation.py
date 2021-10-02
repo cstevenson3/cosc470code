@@ -2,14 +2,17 @@
 
 import itertools
 from time import sleep
+import subprocess
+import os
 import shutil
 import json
 
 def filename_of_combo(label, name, samples):
     return label + "-" + name + "-" + str(samples) + ".ply"
 
-def call_reconstruct(filename):
-    pass
+def call_reconstruct(config, filename):
+    input_text = "test" + "\n" + filename + "\n"
+    p = subprocess.run(config["binary"], input=input_text, text=True)
 
 def main():
     fp = open("Modifications/analysis/config.json")
@@ -27,13 +30,16 @@ def main():
         original = config["test_model_originals_folder"] + model_name + ".ply"
         sample = config["test_model_samples_folder"] + config["sample_prefix"] + str(plane_sample) + "/" + model_name + ".txt"
         
-        call_reconstruct(sample)
+        call_reconstruct(config, sample)
 
         # copy output over
         sleep(0.3)
         output_file = config["output_file"]
         labelled_file = filename_of_combo(config["label"], model_name, plane_sample)
-        shutil.copy(output_file, config["automation_folder"] + labelled_file)
+        dest = config["automation_folder"] + labelled_file
+        if os.path.exists(dest):
+            os.remove(dest)
+        shutil.copy(output_file, dest)
         sleep(0.1)
 
 if __name__ == "__main__":
