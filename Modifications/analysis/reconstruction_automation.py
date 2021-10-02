@@ -14,15 +14,7 @@ def call_reconstruct(config, filename):
     input_text = "test" + "\n" + filename + "\n"
     p = subprocess.run(config["binary"], input=input_text, text=True)
 
-def main():
-    fp = open("Modifications/analysis/config.json")
-    config = json.load(fp)
-
-    # generate combinations
-    model_names = config["test_model_names"]
-    plane_samples = config["plane_samples"]
-    combos = itertools.product(model_names, plane_samples)
-    
+def reconstruct_combos(config, combos):
     for combo in combos:
         model_name = combo[0]
         plane_sample = combo[1]
@@ -41,6 +33,24 @@ def main():
             os.remove(dest)
         shutil.copy(output_file, dest)
         sleep(0.1)
+
+def analyse(config, combos):
+    pass
+
+def main():
+    fp = open("Modifications/analysis/config.json")
+    config = json.load(fp)
+
+    # generate combinations
+    model_names = config["test_model_names"]
+    plane_samples = config["plane_samples"]
+    combos = itertools.product(model_names, plane_samples)
+    
+    if config["reconstruct"]:
+        reconstruct_combos(config, combos)
+
+    if config["analyse"]:
+        analyse(config, combos)
 
 if __name__ == "__main__":
     main()

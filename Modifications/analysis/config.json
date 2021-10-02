@@ -1,4 +1,6 @@
 {
+    "reconstruct" : true,
+    "analyse" : true,
     "label" : "cspa90",
     "binary" : "./SurfaceReconstruction/bin/surface_reconstruction",
     "output_file" : "./Output/output.ply",
