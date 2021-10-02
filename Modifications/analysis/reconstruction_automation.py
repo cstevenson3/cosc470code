@@ -1,10 +1,40 @@
 ''' For a given reconstruction binary, call it with combinations of sample size, model etc. '''
 
+import itertools
+from time import sleep
+import shutil
 import json
 
+def filename_of_combo(label, name, samples):
+    return label + "-" + name + "-" + str(samples) + ".ply"
+
+def call_reconstruct(filename):
+    pass
+
 def main():
-    fp = open("config.json")
+    fp = open("Modifications/analysis/config.json")
     config = json.load(fp)
+
+    # generate combinations
+    model_names = config["test_model_names"]
+    plane_samples = config["plane_samples"]
+    combos = itertools.product(model_names, plane_samples)
+    
+    for combo in combos:
+        model_name = combo[0]
+        plane_sample = combo[1]
+
+        original = config["test_model_originals_folder"] + model_name + ".ply"
+        sample = config["test_model_samples_folder"] + config["sample_prefix"] + str(plane_sample) + "/" + model_name + ".txt"
+        
+        call_reconstruct(sample)
+
+        # copy output over
+        sleep(0.3)
+        output_file = config["output_file"]
+        labelled_file = filename_of_combo(config["label"], model_name, plane_sample)
+        shutil.copy(output_file, config["automation_folder"] + labelled_file)
+        sleep(0.1)
 
 if __name__ == "__main__":
     main()
