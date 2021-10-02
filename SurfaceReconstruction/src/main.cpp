@@ -24,7 +24,7 @@ namespace {
 
         Surface::Reconstruction reconstruction;
         reconstruction.reconstructTwoWay(ContourCorrespondence::CorrespondenceMethod::centroidWithinRadius,
-                                   PointCorrespondence::Algorithm::pointangle,
+                                   PointCorrespondence::Algorithm::dynamictimewarpingwindow,
                                    "Output/output.ply");
 
         timer.stop();
