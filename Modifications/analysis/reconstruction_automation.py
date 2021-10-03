@@ -25,7 +25,11 @@ def reconstruct_combos(config, combos):
         plane_sample = combo[1]
 
         original = config["test_model_originals_folder"] + model_name + ".ply"
-        sample = config["test_model_samples_folder"] + config["sample_prefix"] + str(plane_sample) + "/" + model_name + ".txt"
+        # quick hack to reconstruct simple-branch.txt for the 2-6 model
+        sample_name = model_name
+        if sample_name == "simple-branch-2-6":
+            sample_name = "simple-branch"
+        sample = config["test_model_samples_folder"] + config["sample_prefix"] + str(plane_sample) + "/" + sample_name + ".txt"
         
         call_reconstruct(config, sample)
 
@@ -38,11 +42,12 @@ def reconstruct_combos(config, combos):
         shutil.copy(output_file, dest)
         sleep(0.1)
 
-def hausdorff_stats(model1, model2):
+def hausdorff_stats(model1, model2, options={}):
     ms = pymeshlab.MeshSet()
     ms.load_new_mesh(os.path.abspath(model1))  # from
     ms.load_new_mesh(os.path.abspath(model2))  # to
-    return ms.hausdorff_distance(sampledmesh=0, targetmesh=1)
+    stats = ms.hausdorff_distance(sampledmesh=0, targetmesh=1, **options)
+    return stats
 
 def append_hd_stats(combo_stats, label, hd_stats):
     mean = hd_stats["mean"]
@@ -73,6 +78,12 @@ def analyse(config, combos):
         append_hd_stats(combo_object, "hd_default_forward", forward_stats)
         reverse_stats = hausdorff_stats(output, original)
         append_hd_stats(combo_object, "hd_default_reverse", reverse_stats)
+
+        # hausdorff faces
+        forward_stats = hausdorff_stats(original, output, options={"samplevert":False, "sampleface":True})
+        append_hd_stats(combo_object, "hd_faces_forward", forward_stats)
+        reverse_stats = hausdorff_stats(output, original, options={"samplevert":False, "sampleface":True})
+        append_hd_stats(combo_object, "hd_faces_reverse", reverse_stats)
 
         combo_objects.append(combo_object)
 
@@ -105,8 +116,8 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="simple-branch", plane_samples=10)
-    simple10rm = pull_values(simple10, ["label", "hd_default_forward.mean"])
+    simple10 = query_stats(stats, model="simple-branch-2-6", plane_samples=10)
+    simple10rm = pull_values(simple10, ["label", "hd_faces_forward.mean"])
     print(simple10rm)
 
 def main():

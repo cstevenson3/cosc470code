@@ -9,7 +9,7 @@
     "automation_folder" : "./Output/automation/",
     "test_model_originals_folder" : "./TestModels/export/",
     "test_model_samples_folder" : "./TestModels/sampled/",
-    "test_model_names" : ["simple", "simple-branch", "multi-branch", "bend"],
+    "test_model_names" : ["simple", "simple-branch", "simple-branch-2-6", "multi-branch", "bend"],
     "sample_prefix" : "csize_",
     "plane_samples": [10, 20, 30, 40, 50]
 }
