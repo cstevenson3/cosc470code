@@ -116,7 +116,7 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="simple-branch-2-6", plane_samples=10)
+    simple10 = query_stats(stats, model="multi-branch", plane_samples=10)
     simple10rm = pull_values(simple10, ["label", "hd_faces_forward.mean"])
     print(simple10rm)
 
