@@ -9,11 +9,17 @@ import json
 
 import pymeshlab
 
+def filename(label, name, samples):
+    return label + "-" + name + "-" + str(samples)
+
 def filename_of_combo(label, name, samples):
-    return label + "-" + name + "-" + str(samples) + ".ply"
+    return filename(label, name, samples) + ".ply"
 
 def filepath_of_combo(config, name, samples):
     return config["automation_folder"] + filename_of_combo(config["label"], name, samples)
+
+def filepath_of_snapshot(config, name, samples):
+    return config["snapshot_folder"] + filename(config["label"], name, samples) + ".png"
 
 def call_reconstruct(config, filename):
     input_text = "test" + "\n" + filename + "\n"
@@ -116,9 +122,21 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="multi-branch", plane_samples=10)
-    simple10rm = pull_values(simple10, ["label", "hd_faces_forward.mean"])
+    simple10 = query_stats(stats, model="simple-branch-2-6", plane_samples=40)
+    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
     print(simple10rm)
+
+def take_snapshot(config, model_name, plane_samples):
+        model_path = filepath_of_combo(config, model_name, plane_samples)
+        snapshot_path = filepath_of_snapshot(config, model_name, plane_samples)
+        ms = pymeshlab.MeshSet()
+        ms.load_new_mesh(os.path.abspath(model_path))
+        ms.snapshot(imagewidth=512, imageheight=768, imagefilename=snapshot_path)
+
+def take_snapshots(config, combos):
+    for combo in combos:
+        model_name, plane_samples = combo
+        take_snapshot(config, model_name, plane_samples)
 
 def main():
     fp = open("Modifications/analysis/config.json")
@@ -131,6 +149,9 @@ def main():
 
     if config["reconstruct"]:
         reconstruct_combos(config, combos)
+    
+    if config["take_snapshots"]:
+        take_snapshots(config, combos)
 
     if config["analyse"]:
         analyse(config, combos)
