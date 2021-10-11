@@ -35,6 +35,8 @@ def reconstruct_combos(config, combos):
         sample_name = model_name
         if sample_name == "simple-branch-2-6":
             sample_name = "simple-branch"
+        if sample_name == "multi-branch-2-7":
+            sample_name = "multi-branch"
         sample = config["test_model_samples_folder"] + config["sample_prefix"] + str(plane_sample) + "/" + sample_name + ".txt"
         
         call_reconstruct(config, sample)
@@ -122,7 +124,7 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="simple-branch-2-6", plane_samples=40)
+    simple10 = query_stats(stats, model="simple", plane_samples=40)
     simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
     print(simple10rm)
 

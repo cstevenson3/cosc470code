@@ -2,4 +2,7 @@
 .vscode
 SurfaceReconstruction/build/
 SurfaceReconstruction/bin/
-Output/
+Output/*
+!Output/automation/
+Output/automation/*
+!Output/automation/stats.json

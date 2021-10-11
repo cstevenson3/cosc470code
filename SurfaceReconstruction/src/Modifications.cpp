@@ -275,7 +275,7 @@ namespace Modifications {
         std::vector<float> c1prog = progressionAroundContour(c1reordered);
         std::vector<float> c2prog = progressionAroundContour(c2reordered);
 
-        float ANG_WEIGHT = 1.0;
+        float ANG_WEIGHT = 0.5;
         std::vector<float> metricWeights = std::vector<float>();
         metricWeights.push_back(ANG_WEIGHT);  // weight angle by ANG_WEIGHT
         metricWeights.push_back(1 - ANG_WEIGHT);  // remaining weight given to progression
