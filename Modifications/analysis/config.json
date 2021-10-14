@@ -4,14 +4,14 @@
     "analyse" : false,
     "show_stats" : true,
     "append_to_stats": true,
-    "label" : "cspa50",
+    "label" : "dtw",
     "binary" : "./SurfaceReconstruction/bin/surface_reconstruction",
     "output_file" : "./Output/output.ply",
     "automation_folder" : "./Output/automation/",
     "snapshot_folder" : "./Output/automation/snapshots/",
     "test_model_originals_folder" : "./TestModels/export/",
     "test_model_samples_folder" : "./TestModels/sampled/",
-    "test_model_names" : ["simple", "simple-branch", "simple-branch-2-6", "multi-branch", "bend"],
+    "test_model_names" : ["simple", "simple-branch", "simple-branch-2-6", "multi-branch", "multi-branch-2-7", "bend"],
     "sample_prefix" : "csize_",
     "plane_samples": [10, 20, 30, 40, 50]
 }

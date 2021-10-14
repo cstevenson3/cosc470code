@@ -56,7 +56,7 @@ namespace Surface {
             auto reverseCorrespondence = ContourCorrespondence::findContourCorrespondenceIndices(contourStack.points,
                                                                                           neighbourContourList, sourceContourList, correspondenceMethod);
 
-            bool CONTOUR_SPLITTING = true;
+            bool CONTOUR_SPLITTING = false;
             if(CONTOUR_SPLITTING) {
                 std::vector<MeshUtil::TriangleIndices> ti = Modifications::contourSplitting(contourStack.points, 
                                                                                         sourceContourList, 

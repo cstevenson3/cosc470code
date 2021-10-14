@@ -124,8 +124,8 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="simple", plane_samples=40)
-    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
+    simple10 = query_stats(stats, model="bend", plane_samples=50)
+    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_reverse.mean"])
     print(simple10rm)
 
 def take_snapshot(config, model_name, plane_samples):
