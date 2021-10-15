@@ -71,7 +71,8 @@ namespace Modifications {
     std::vector<glm::vec3> translateContour(const std::vector<glm::vec3>& contour, 
                                             float x, 
                                             float y, 
-                                            float z) {
+                                            float z) 
+    {
         std::vector<glm::vec3> result = std::vector<glm::vec3>();
         for(int i = 0; i < contour.size(); i++) {
             glm::vec3 point = contour[i];
@@ -196,6 +197,11 @@ namespace Modifications {
             centroid = centroid + weightedCentroid;
             totalArea += triangleArea;
         }
+        if(totalArea == 0) {
+            std::cout << "Zero area contour" << std::endl;
+            centroid = contour[0]; // hack to cope with errors in real data
+            return centroid;
+        }
         centroid = centroid * (float)(1.0 / totalArea);
         return centroid;
     } 
@@ -250,7 +256,6 @@ namespace Modifications {
     MeshUtil::Correspondence pointCorrespondencePointAngle(const std::vector<glm::vec3>& contour1, 
                                                             const std::vector<glm::vec3>& contour2)
     {
-
         // could wrap all this preprocessing into a function so don't repeat code for both contours
         glm::vec3 centroid1 = contourCentroid(contour1);
         glm::vec3 centroid2 = contourCentroid(contour2);
