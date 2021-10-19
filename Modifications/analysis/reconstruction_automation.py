@@ -31,7 +31,7 @@ def reconstruct_combos(config, combos):
         plane_sample = combo[1]
 
         original = config["test_model_originals_folder"] + model_name + ".ply"
-        # quick hack to reconstruct simple-branch.txt for the 2-6 model
+        # quick hack to reconstruct focussed models without specific plane samples file
         sample_name = model_name
         if sample_name == "simple-branch-2-6":
             sample_name = "simple-branch"
@@ -134,6 +134,13 @@ def show_stats(config):
     simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
     print(simple10rm)
 
+def compare_labels(config):
+    # compute change of label2 relative to label1 as a proportion (negative is improvement)
+    label1 = "dtw"
+    label2 = "cspa50"
+
+    fp = open(config["automation_folder"] + "stats.json", mode="r")
+    stats = json.load(fp)
     # calculate % improvement between methods
     exclusions = ["simple-branch-20", "simple-branch-50"]
     all_stats = query_stats(stats, model=["simple", "simple-branch", "multi-branch", "bend"])
@@ -155,9 +162,6 @@ def show_stats(config):
             continue
         N += 1
         val = combo_key_dict[key]
-        # compute change of label2 relative to label1 (negative is improvement)
-        label1 = "dtw"
-        label2 = "cspa50"
 
         forward1 = val[label1]["forward"]
         forward2 = val[label2]["forward"]
@@ -170,7 +174,6 @@ def show_stats(config):
         av_change += (forward_change + reverse_change) * 0.5
     av_change *= 1.0 / N
     print("Average change: {}".format(av_change))
-
 
 def take_snapshot(config, model_name, plane_samples):
         model_path = filepath_of_combo(config, model_name, plane_samples)
@@ -204,6 +207,9 @@ def main():
 
     if config["show_stats"]:
         show_stats(config)
+    
+    if config["compare_labels"]:
+        compare_labels(config)
 
 if __name__ == "__main__":
     main()

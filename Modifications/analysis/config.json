@@ -3,6 +3,7 @@
     "take_snapshots": false,
     "analyse" : false,
     "show_stats" : true,
+    "compare_labels": true,
     "append_to_stats": true,
     "label" : "dtw",
     "binary" : "./SurfaceReconstruction/bin/surface_reconstruction",
