@@ -154,7 +154,8 @@ namespace Modifications {
         if(candidates.size() == 0) {
             std::cout << "No candidates" << std::endl;
             printContour(contour);
-            throw NotImplemented();
+            // throw NotImplemented();
+            return 0; // hack to work on some bad contours in real data
         }
 
         // there should be at least one candidate if the centroid is correct and contour is continuous

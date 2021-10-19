@@ -23,6 +23,7 @@ namespace Modifications {
                                                             const Contours::Contour& neighbour);
 
     /**
+     * NOT TESTED
      * Get point correspondence by aligning contours (position and rotation) before DTW
      * @param points        Reference to global point set.
      * @param source        Source contour.

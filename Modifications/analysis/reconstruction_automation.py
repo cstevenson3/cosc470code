@@ -102,8 +102,12 @@ def query_stats(stats, label=None, model=None, plane_samples=None):
     ''' filter stats '''
     result = []
     for stat in stats:
+        model_in_list = False
+        if isinstance(model, list):
+            if stat["model"] in model:
+                model_in_list = True
         if stat["label"] == label or label == None:
-            if stat["model"] == model or model == None:
+            if stat["model"] == model or model == None or model_in_list:
                 if stat["plane_samples"] == plane_samples or plane_samples == None:
                     result.append(stat)
     return result
@@ -124,9 +128,49 @@ def pull_values(stats, values=[]):
 def show_stats(config):
     fp = open(config["automation_folder"] + "stats.json", mode="r")
     stats = json.load(fp)
-    simple10 = query_stats(stats, model="bend", plane_samples=50)
-    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_reverse.mean"])
+
+    # quick lookup
+    simple10 = query_stats(stats, model="multi-branch-2-7", plane_samples=10)
+    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
     print(simple10rm)
+
+    # calculate % improvement between methods
+    exclusions = ["simple-branch-20", "simple-branch-50"]
+    all_stats = query_stats(stats, model=["simple", "simple-branch", "multi-branch", "bend"])
+    all_entries = pull_values(all_stats, ["label", "model", "plane_samples", "hd_faces_forward.mean", "hd_faces_reverse.mean"])
+    combo_key_dict = dict() # key:"model-samples", value:(dict with key:"label", value: dict with key:"direction", value: hd)
+    for entry in all_entries:
+        model_samples = entry["model"] + "-" + str(entry["plane_samples"])
+        hd_dict = dict()
+        hd_dict["forward"] = entry["hd_faces_forward.mean"]
+        hd_dict["reverse"] = entry["hd_faces_reverse.mean"]
+        if not model_samples in combo_key_dict:
+            combo_key_dict[model_samples] = dict()
+        combo_key_dict[model_samples][entry["label"]] = hd_dict
+
+    av_change = 0
+    N = 0
+    for key in combo_key_dict.keys():
+        if key in exclusions:
+            continue
+        N += 1
+        val = combo_key_dict[key]
+        # compute change of label2 relative to label1 (negative is improvement)
+        label1 = "dtw"
+        label2 = "cspa50"
+
+        forward1 = val[label1]["forward"]
+        forward2 = val[label2]["forward"]
+        forward_change = (forward2 - forward1) / forward1
+
+        reverse1 = val[label1]["reverse"]
+        reverse2 = val[label2]["reverse"]
+        reverse_change = (reverse2 - reverse1) / reverse1
+
+        av_change += (forward_change + reverse_change) * 0.5
+    av_change *= 1.0 / N
+    print("Average change: {}".format(av_change))
+
 
 def take_snapshot(config, model_name, plane_samples):
         model_path = filepath_of_combo(config, model_name, plane_samples)

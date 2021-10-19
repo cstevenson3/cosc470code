@@ -56,6 +56,7 @@ namespace Surface {
             auto reverseCorrespondence = ContourCorrespondence::findContourCorrespondenceIndices(contourStack.points,
                                                                                           neighbourContourList, sourceContourList, correspondenceMethod);
 
+            // choose whether contour splitting or contour merging is used
             bool CONTOUR_SPLITTING = true;
             if(CONTOUR_SPLITTING) {
                 std::vector<MeshUtil::TriangleIndices> ti = Modifications::contourSplitting(contourStack.points, 
@@ -68,7 +69,7 @@ namespace Surface {
                 triangles.insert(triangles.end(), ti.begin(), ti.end());
                 continue;  // do not do contour merging method
             }
-
+            // contour merging
             for (auto correspondence : contourCorrespondence) {
                 if (correspondence.second.empty()) {
                     std::cout << "There is an unmatched contour.\n";
