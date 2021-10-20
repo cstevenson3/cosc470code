@@ -1,6 +1,7 @@
 ''' For a given reconstruction binary, call it with combinations of sample size, model etc. '''
 
 import itertools
+import time
 from time import sleep
 import subprocess
 import os
@@ -130,8 +131,8 @@ def show_stats(config):
     stats = json.load(fp)
 
     # quick lookup
-    simple10 = query_stats(stats, model="multi-branch-2-7", plane_samples=10)
-    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_forward.mean"])
+    simple10 = query_stats(stats, model="simple-branch", plane_samples=40)
+    simple10rm = pull_values(simple10, ["label", "plane_samples", "hd_faces_reverse.mean"])
     print(simple10rm)
 
 def compare_labels(config):
@@ -187,6 +188,27 @@ def take_snapshots(config, combos):
         model_name, plane_samples = combo
         take_snapshot(config, model_name, plane_samples)
 
+def repeat_reconstruction(config, model, N):
+    for _ in range(N):
+        call_reconstruct(config, model)
+
+def time_reconstruction(config, model):
+    N = 100
+    t0 = time.perf_counter()
+    repeat_reconstruction(config, model, N)
+    t1 = time.perf_counter()
+    repeat_reconstruction(config, model, N)
+    t2 = time.perf_counter()
+    repeat_reconstruction(config, model, N)
+    t3 = time.perf_counter()
+    diff1 = t1 - t0
+    diff2 = t2 - t1
+    diff3 = t3 - t2
+    print("Average time per reconstruction (3 samples): ({}, {}, {})".format(diff1 / N, diff2 / N, diff3 / N))
+
+def performance_test(config):
+    time_reconstruction(config, "TestModels/sampled/csize_10/simple.txt")
+
 def main():
     fp = open("Modifications/analysis/config.json")
     config = json.load(fp)
@@ -210,6 +232,9 @@ def main():
     
     if config["compare_labels"]:
         compare_labels(config)
+
+    if config["performance_test"]:
+        performance_test(config)
 
 if __name__ == "__main__":
     main()
