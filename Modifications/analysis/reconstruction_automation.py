@@ -22,8 +22,10 @@ def filepath_of_combo(config, name, samples):
 def filepath_of_snapshot(config, name, samples):
     return config["snapshot_folder"] + filename(config["label"], name, samples) + ".png"
 
-def call_reconstruct(config, filename):
-    input_text = "test" + "\n" + filename + "\n"
+def call_reconstruct(config, filename, format="test"):
+    input_text = format + "\n" + filename + "\n"
+    if format == "real":
+        input_text += "0" + "\n" + "9999" + "\n" + "1" + "\n" + "209" + "\n"  # TODO not hardcode these
     p = subprocess.run(config["binary"], input=input_text, text=True)
 
 def reconstruct_combos(config, combos):
@@ -188,26 +190,32 @@ def take_snapshots(config, combos):
         model_name, plane_samples = combo
         take_snapshot(config, model_name, plane_samples)
 
-def repeat_reconstruction(config, model, N):
+def repeat_reconstruction(config, model, N, format="test"):
     for _ in range(N):
-        call_reconstruct(config, model)
+        call_reconstruct(config, model, format=format)
 
-def time_reconstruction(config, model):
-    N = 100
+def time_reconstruction(config, model, format="test"):
+    N = 10
     t0 = time.perf_counter()
-    repeat_reconstruction(config, model, N)
+    repeat_reconstruction(config, model, N, format=format)
     t1 = time.perf_counter()
-    repeat_reconstruction(config, model, N)
+    repeat_reconstruction(config, model, N, format=format)
     t2 = time.perf_counter()
-    repeat_reconstruction(config, model, N)
+    repeat_reconstruction(config, model, N, format=format)
     t3 = time.perf_counter()
     diff1 = t1 - t0
     diff2 = t2 - t1
     diff3 = t3 - t2
-    print("Average time per reconstruction (3 samples): ({}, {}, {})".format(diff1 / N, diff2 / N, diff3 / N))
+    av = (diff1 + diff2 + diff3) / 3.0
+    print("Average time per reconstruction of {} (3 runs): ({}, {}, {}). Average {}".format(model, diff1 / N, diff2 / N, diff3 / N, av / N))
 
 def performance_test(config):
-    time_reconstruction(config, "TestModels/sampled/csize_10/simple.txt")
+    #time_reconstruction(config, "TestModels/sampled/csize_10/multi-branch.txt")
+    #time_reconstruction(config, "TestModels/sampled/csize_20/multi-branch.txt")
+    #time_reconstruction(config, "TestModels/sampled/csize_30/multi-branch.txt")
+    #time_reconstruction(config, "TestModels/sampled/csize_40/multi-branch.txt")
+    time_reconstruction(config, "TestModels/sampled/csize_50/multi-branch.txt")
+    #time_reconstruction(config, "(real data path here)", format="real")
 
 def main():
     fp = open("Modifications/analysis/config.json")

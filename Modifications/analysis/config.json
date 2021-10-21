@@ -6,7 +6,7 @@
     "compare_labels": false,
     "append_to_stats": true,
     "performance_test": true,
-    "label" : "cspa50",
+    "label" : "dtw",
     "binary" : "./SurfaceReconstruction/bin/surface_reconstruction",
     "output_file" : "./Output/output.ply",
     "automation_folder" : "./Output/automation/",

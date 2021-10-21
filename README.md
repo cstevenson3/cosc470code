@@ -60,6 +60,7 @@ The first few options in config.json are what to do in a single run.
 "show_stats" runs whatever you want to investigate in reconstruction_automation.show_stats. As an example a particular model and plane sample count can be picked out, and hd_faces_reverse.mean shown for all methods analysed.
 "compare_labels" compares the accuracy of two reconstruction methods which have been reconstructed and analysed. As an example, it outputs -15.2 for dtw and cspa50, meaning cspa50 improves by 15% on DTW for the models included.
 "append_to_stats" if set to False, the stats.json will be wiped on a run of analyse. If set to true, analyse will append to the existing stats, which is necessary for storing results for two reconstruction methods.
+"performance_test" can be used to call a particular reconstruction multiple times to get average times for that method
 
 Some other options:
 "output_file" is where the reconstruction binary puts its output, since this is hardcoded.
