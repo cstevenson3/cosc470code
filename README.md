@@ -23,17 +23,26 @@ SurfaceReconstruction/src/Modifications.cpp contains the bulk of what I have add
 The README in SurfaceReconstruction is the original which came along with Mackay's implementation.
 
 To build:
+
 Make a directory SurfaceReconstruction/build.
+
 Change to this directory.
+
 cmake ..
+
 make
 
+
 To run:
+
 From the directory above SurfaceReconstruction:
+
 ./SurfaceReconstruction/bin/surface_reconstruction
 
 To reconstruct test models:
+
 input "test" when prompted for input data format
+
 Give a text file containing sampled contours (e.g. TestModels/sampled/csize_10/simple.txt)
 
 ## Configuring Reconstruction Method
@@ -53,17 +62,27 @@ Use the repo root as the working directory.
 A single run of reconstruction_automation.py uses whatever binary is currently compiled, so to test multiple methods you will need to change the C++ source and recompile the reconstruction binary, then rerun reconstruction_automation.py.
 
 The first few options in config.json are what to do in a single run.
+
 "label" is the reconstruction method which is currently being used for reconstruct, analyse, and take_snapshots.
+
 "reconstuct" runs the reconstruction binary to generate reconstructed models (stored in Output/automation)
+
 "take_snapshots" opens these reconstructions in PyMeshLab's rendering tool and takes snapshots (stored in Output/automation/snapshots)
+
 "analyse" uses PyMeshLab to run Hausdorff distance metrics between reconstructions and their originals. Results are stored in Output/automation/stats.json. The runs used for the report for this project are stored in the stats.json supplied with this repo. "reconstruct" must have been run first
+
 "show_stats" runs whatever you want to investigate in reconstruction_automation.show_stats. As an example a particular model and plane sample count can be picked out, and hd_faces_reverse.mean shown for all methods analysed.
+
 "compare_labels" compares the accuracy of two reconstruction methods which have been reconstructed and analysed. As an example, it outputs -15.2 for dtw and cspa50, meaning cspa50 improves by 15% on DTW for the models included.
+
 "append_to_stats" if set to False, the stats.json will be wiped on a run of analyse. If set to true, analyse will append to the existing stats, which is necessary for storing results for two reconstruction methods.
+
 "performance_test" can be used to call a particular reconstruction multiple times to get average times for that method
 
 Some other options:
+
 "output_file" is where the reconstruction binary puts its output, since this is hardcoded.
+
 "test_model_names" and "plane_samples" are the models and plane counts which should be reconstructed, analysed etc. This requires matching names for originals .ply and their plane sample .txt files. It also expects the directory structure $(test_model_samples_folder)/$(sample_prefix)$(plane_count)/$(model_name).txt, as provided in this repo.
 
 
