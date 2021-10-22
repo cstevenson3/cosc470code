@@ -1,12 +1,12 @@
 # cosc470code
 
 This is the implementation of concepts developed in 
-Cameron Stevenson, "Contour splitting for branching structures in CT image reconstructions", 2021
+C. Stevenson, "Contour splitting for branching structures in CT image reconstructions", University of Canterbury, 2021.
 https://github.com/cstevenson3/cosc470writing/blob/main/report.pdf
 
 David Mackay is the original author of the work in SurfaceReconstruction and TestModels. Refer to this paper:
 D. Mackay, “Robust contour based surface reconstruction algorithms for applications
-in medical imaging,” 2019.
+in medical imaging”, University of Canterbury, 2019.
 https://ir.canterbury.ac.nz/handle/10092/16667
 
 I am working on improvements to his method, and have modified his implementation.
